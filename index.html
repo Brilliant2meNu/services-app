@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Area</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .green-button {
+            background-color: #28a745;
+        }
+        .green-button:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <img src="JMK.jpg" alt="JMK Logo" style="width: 200px;">
+    <h1>Services Area</h1>
+    <div>
+        <img src="keyboard-icon_v1.png" alt="Keyboard Icon" style="width: 50px; margin-right: 10px;">
+        <img src="microphone-icon_v1.png" alt="Microphone Icon" style="width: 50px;">
+    </div>
+    <div id="services"></div>
+    <button class="button green-button" onclick="generateQRCode()">Generate QR Code</button>
+    <script type="module">
+        // Import Supabase library
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // Initialize Supabase
+        const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co";
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0MjM1ODksImV4cCI6MjA1Mjk5OTU4OX0.c9cIXQHFL487yOG44XFfD2D672cPpYzK-AKoCiZpjnk";
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        // Fetch services from Supabase
+        async function fetchServices() {
+            const { data, error } = await supabase
+                .from('service_offerings')
+                .select('*');
+
+            if (error) {
+                console.error('Error fetching services:', error);
+                return;
+            }
+
+            const servicesDiv = document.getElementById('services');
+            servicesDiv.innerHTML = data.map(service => `
+                <button class="button">${service.service_name}</button>
+            `).join('');
+        }
+
+        // Function for future QR code generation
+        function generateQRCode() {
+            alert("QR Code generation coming soon!");
+        }
+
+        // Fetch services on page load
+        fetchServices();
+    </script>
+</body>
+</html>
