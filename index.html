@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Area</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        img {
+            max-width: 100px;
+            margin: 10px;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #FFF;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+    <header>
+        <img src="./JMK.jpg" alt="Jingmei Ko Logo">
+        <h1>Services Area</h1>
+    </header>
+    <main>
+        <div>
+            <img src="./keyboard-icon_v1.png" alt="Keyboard Icon">
+            <img src="./microphone-icon_v1.png" alt="Microphone Icon">
+        </div>
+        <div>
+            <a href="#" class="button" onclick="fetchServiceDetails('Service 1')">Service 1</a>
+            <a href="#" class="button" onclick="fetchServiceDetails('Service 2')">Service 2</a>
+            <a href="#" class="button" onclick="fetchServiceDetails('Service 3')">Service 3</a>
+        </div>
+        <div>
+            <a href="#" class="button" style="background-color: #6c757d;" onclick="goBack()">← Back</a>
+        </div>
+        <button class="button" style="background-color: #28a745;" onclick="generateQRCode()">Generate QR Code</button>
+    </main>
+    <script>
+        const SUPABASE_URL = "YOUR_SUPABASE_URL"; // Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // Replace with your Supabase Anon Key
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function fetchServiceDetails(serviceName) {
+            try {
+                const { data, error } = await supabase
+                    .from('service_offerings')
+                    .select('*')
+                    .eq('service_name', serviceName);
+
+                if (error) {
+                    console.error('Error fetching service details:', error);
+                    alert('Failed to fetch service details.');
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    alert(`Service Details: \nName: ${data[0].service_name}\nDescription: ${data[0].description}\nPrice: $${data[0].price}\nDuration: ${data[0].duration}`);
+                } else {
+                    alert('No details found for the selected service.');
+                }
+            } catch (error) {
+                console.error('Unexpected error:', error);
+                alert('An unexpected error occurred.');
+            }
+        }
+
+        function generateQRCode() {
+            alert('QR Code generation feature will be implemented soon.');
+        }
+
+        function goBack() {
+            alert('Going back to the previous page.');
+        }
+    </script>
+</body>
+</html>
