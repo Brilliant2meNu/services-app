@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Area</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .services-container {
+            margin: 20px;
+        }
+        .service-button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 25px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .service-button:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            background-color: #6c757d;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .qr-button {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 25px;
+            font-size: 16px;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .qr-button:hover {
+            background-color: #218838;
+        }
+        .icon {
+            width: 30px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <img src="JMK.jpg" alt="JMK Logo" style="width: 150px; margin: 20px auto;">
+    <h1>Services Area</h1>
+    <div class="services-container">
+        <img src="keyboard-icon_v1.png" alt="Keyboard Icon" class="icon"> Keyboard Icon
+        <img src="microphone-icon_v1.png" alt="Microphone Icon" class="icon"> Microphone Icon
+        <div>
+            <button class="service-button">Service 1</button>
+            <button class="service-button">Service 2</button>
+            <button class="service-button">Service 3</button>
+            <button class="service-button back-button">&larr; Back</button>
+        </div>
+        <button class="qr-button">Generate QR Code</button>
+    </div>
+</body>
+</html>
