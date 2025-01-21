@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <img src="JMK.jpg" alt="Logo" width="150">
+    </header>
+    <main>
+        <h1>Services Area</h1>
+        <div id="icons">
+            <img src="keyboard-icon_v1.png" alt="Keyboard Icon" width="50">
+            <img src="microphone-icon_v1.png" alt="Microphone Icon" width="50">
+        </div>
+        <div id="services">
+            <button id="service1">Service 1</button>
+            <button id="service2">Service 2</button>
+            <button id="service3">Service 3</button>
+        </div>
+        <button id="generateQR">Generate QR Code</button>
+    </main>
+    <footer>
+        <button id="back">← Back</button>
+    </footer>
+
+    <script type="module">
+        // Supabase Initialization
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc0MjM1ODksImV4cCI6MjA1Mjk5OTU4OX0.c9cIXQHFL487yOG44XFfD2D672cPpYzK-AKoCiZpjnk";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        async function fetchServices() {
+            let { data, error } = await supabase.from("service_offerings").select("*");
+            if (error) {
+                console.error("Error fetching services:", error);
+            } else {
+                console.log("Services:", data);
+                // Dynamically populate services
+                const servicesDiv = document.getElementById("services");
+                servicesDiv.innerHTML = "";
+                data.forEach(service => {
+                    const btn = document.createElement("button");
+                    btn.textContent = service.service_name;
+                    servicesDiv.appendChild(btn);
+                });
+            }
+        }
+
+        document.getElementById("generateQR").addEventListener("click", () => {
+            alert("QR Code functionality coming soon!");
+        });
+
+        document.getElementById("back").addEventListener("click", () => {
+            alert("Returning to the main menu!");
+        });
+
+        // Fetch services on page load
+        fetchServices();
+    </script>
+</body>
+</html>
