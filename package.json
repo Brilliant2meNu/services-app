@@ -1,15 +1,12 @@
 {
   "name": "services-app",
   "version": "1.0.0",
-  "description": "A simple services app with Supabase backend integration",
-  "main": "index.html",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "echo \"No start script defined\" && exit 1"
+    "start": "node index.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.0.0"
-  },
-  "keywords": [],
-  "author": "User",
-  "license": "MIT"
+    ...
+  }
 }
