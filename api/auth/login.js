@@ -4,9 +4,11 @@ export default function handler(req, res) {
 
     // Mock authentication logic
     if (email === 'admin@example.com' && password === 'admin123') {
-      return res.status(200).json({ role: 'admin', message: 'Login successful' });
+      const token = "YOUR_SAMPLE_TOKEN"; // Replace with a static or generated token
+      return res.status(200).json({ role: 'admin', token, message: 'Login successful' });
     } else if (email === 'premium@example.com' && password === 'premium123') {
-      return res.status(200).json({ role: 'premium', message: 'Login successful' });
+      const token = "YOUR_SAMPLE_TOKEN_FOR_PREMIUM"; // Replace with a static or generated token
+      return res.status(200).json({ role: 'premium', token, message: 'Login successful' });
     } else {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
