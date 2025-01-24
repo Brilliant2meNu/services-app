@@ -1,4 +1,5 @@
 export default function handler(req, res) {
-    // Destroy session (mock)
-    res.status(200).json({ message: "Logged out successfully" });
+  console.log("Logout API Called");
+
+  res.status(200).json({ message: "Logged out successfully" });
 }
