@@ -17,7 +17,7 @@ export default async function handler(req, res) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, // Uses the environment variable for the key
+                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, // Pulling key from environment variable
             },
             body: JSON.stringify({
                 model: "gpt-4",
@@ -34,7 +34,8 @@ export default async function handler(req, res) {
         if (openaiResponse.ok) {
             res.status(200).json({ reply: data.choices[0].message.content });
         } else {
-            res.status(500).json({ error: data });
+            console.error("OpenAI API Error:", data);
+            res.status(500).json({ error: "Failed to fetch response from OpenAI" });
         }
     } catch (error) {
         console.error("Error communicating with OpenAI:", error);
