@@ -3,23 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with GPT</title>
+    <title>Jingmei Ko - Services Area</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 20px;
         }
+
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .green-button {
+            background-color: #28a745;
+        }
+
+        .green-button:hover {
+            background-color: #1e7e34;
+        }
+
         #chatInput {
             width: 300px;
             padding: 10px;
             margin-top: 10px;
         }
-        #sendButton {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+
         #chatOutput {
             margin-top: 20px;
             padding: 10px;
@@ -27,43 +53,106 @@
             border-radius: 5px;
             min-height: 50px;
         }
+
+        #icons img {
+            width: 50px;
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
-    <h1>Chat with GPT</h1>
-    <input type="text" id="chatInput" placeholder="Type your message here..." />
-    <button id="sendButton">Send</button>
+    <img src="JMK.jpg" alt="JMK Logo" style="width: 200px;">
+    <h1>Services Area</h1>
+    <div id="icons">
+        <img src="keyboard-icon_v1.png" alt="Keyboard Icon">
+        <img src="microphone-icon_v1.png" alt="Microphone Icon">
+    </div>
+    <div>
+        <button class="button green-button" onclick="generateQRCode()">Generate QR Code</button>
+        <button class="button" onclick="loginAsAdmin()">Login as Admin</button>
+        <button class="button" onclick="validateSession()">Validate Session</button>
+    </div>
+    <div>
+        <button id="voiceButton" class="button">🎤 Speak</button>
+        <input type="text" id="chatInput" placeholder="Type or use the mic...">
+        <button id="sendButton" class="button">Send</button>
+    </div>
     <div id="chatOutput">Chat will appear here...</div>
 
-    <script>
-        document.getElementById("sendButton").addEventListener("click", async function () {
-            const message = document.getElementById("chatInput").value.trim();
+    <script type="module">
+        // Voice Recognition and Chat
+        const voiceButton = document.getElementById('voiceButton');
+        const chatInput = document.getElementById('chatInput');
+        const chatOutput = document.getElementById('chatOutput');
+        const sendButton = document.getElementById('sendButton');
 
-            if (!message) {
-                alert("Please type something!");
+        // Voice Recognition Functionality
+        voiceButton.addEventListener('click', () => {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+            };
+
+            recognition.onerror = (err) => {
+                console.error("Voice input error:", err);
+                alert("Microphone access is needed!");
+            };
+
+            recognition.start();
+        });
+
+        // Sending User Message to Backend
+        sendButton.addEventListener('click', async () => {
+            const userInput = chatInput.value.trim();
+            if (!userInput) {
+                alert("Please enter a message or use the mic!");
                 return;
             }
 
+            const response = await fetchBackendGPTResponse(userInput);
+            chatOutput.innerText = response;
+        });
+
+        // Function to Communicate with the Backend
+        async function fetchBackendGPTResponse(userInput) {
             try {
                 const response = await fetch("/api/chat", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ message })
+                    body: JSON.stringify({ message: userInput })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById("chatOutput").innerText = data.reply;
-                } else {
-                    document.getElementById("chatOutput").innerText = "Sorry, something went wrong.";
+                if (!response.ok) {
+                    throw new Error("Failed to fetch response from the server");
                 }
+
+                const data = await response.json();
+                return data.reply;
             } catch (error) {
-                console.error("Error:", error);
-                document.getElementById("chatOutput").innerText = "Sorry, something went wrong.";
+                console.error("Error fetching GPT response:", error);
+                return "Sorry, something went wrong.";
             }
-        });
+        }
+
+        // Mock QR Code Generation Function
+        function generateQRCode() {
+            alert("QR Code generation feature is coming soon!");
+        }
+
+        // Mock Login Function
+        function loginAsAdmin() {
+            alert("Login as Admin functionality is under construction!");
+        }
+
+        // Mock Session Validation Function
+        function validateSession() {
+            alert("Session validation feature is not available yet!");
+        }
     </script>
 </body>
 </html>
