@@ -19,7 +19,7 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: "gpt-4",
                 messages: [
-                    { role: "system", content: "You are a helpful beauty assistant." },
+                    { role: "system", content: "You are a helpful assistant." },
                     { role: "user", content: message },
                 ],
             }),
