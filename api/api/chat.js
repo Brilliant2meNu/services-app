@@ -25,15 +25,16 @@ export default async function handler(req, res) {
             })
         });
 
-        const data = await openaiResponse.json();
-
-        if (openaiResponse.ok) {
-            res.status(200).json({ reply: data.choices[0].message.content });
-        } else {
-            res.status(500).json({ error: data });
+        if (!openaiResponse.ok) {
+            const errorData = await openaiResponse.json();
+            console.error("OpenAI API Error:", errorData);
+            return res.status(500).json({ error: "Failed to fetch response from OpenAI" });
         }
+
+        const data = await openaiResponse.json();
+        res.status(200).json({ reply: data.choices[0].message.content });
     } catch (error) {
         console.error("Error communicating with OpenAI:", error);
-        res.status(500).json({ error: "Failed to communicate with OpenAI" });
+        res.status(500).json({ error: "Internal server error" });
     }
 }
