@@ -3,7 +3,16 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { message } = req.body;
+    const { message, step, isInitialLaunch } = req.body;
+
+    // Handle initial greeting if it's the first interaction
+    if (isInitialLaunch && step === 'greet') {
+        return res.status(200).json({
+            reply: "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. To get started, please log into your account if you're an existing client, or type your first name and email so we can assist you better."
+        });
+    }
+
+    // Handle user interactions after the initial greeting
     if (!message) {
         return res.status(400).json({ error: 'Message is required' });
     }
