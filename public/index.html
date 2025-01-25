@@ -204,16 +204,6 @@
       speakText(initialResponse); // Automatically speak the greeting
     }
 
-    // Automatically Start the Chat on Page Load
-    async function autoStartChat() {
-      welcomeScreen.style.display = 'none';
-      chatScreen.style.display = 'block';
-
-      const initialResponse = await fetchInitialGreeting();
-      addMessage("Assistant", initialResponse);
-      speakText(initialResponse); // Automatically speak the greeting
-    }
-
     // Handle Sending Messages
     async function handleSendMessage(userMessage) {
       addMessage("You", userMessage);
@@ -267,8 +257,8 @@
       }
     }
 
-    // Automatically Start Chat on Page Load
-    window.onload = autoStartChat;
+    // Start Chat on Tap
+    welcomeScreen.addEventListener('click', startChat);
   </script>
 </body>
 </html>
