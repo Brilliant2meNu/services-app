@@ -17,6 +17,21 @@
       text-align: left;
     }
 
+    #welcomeScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-size: 24px;
+      font-weight: bold;
+      background-color: #f8f9fa;
+      cursor: pointer;
+    }
+
+    #chatScreen {
+      display: none;
+    }
+
     #chatOutput {
       margin-top: 20px;
       padding: 10px;
@@ -51,27 +66,12 @@
     .input-area button:hover {
       background-color: #0056b3;
     }
-
-    #startPrompt {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 20px;
-      z-index: 10;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-  <div id="startPrompt">Click anywhere to start the chatbot</div>
-  <div class="container" style="display: none;" id="chatContainer">
+  <div id="welcomeScreen">WELCOME! Tap on your screen to begin!</div>
+
+  <div id="chatScreen" class="container">
     <h1>Chatbot</h1>
     <div id="chatOutput">Loading chatbot...</div>
     <div class="input-area">
@@ -82,12 +82,12 @@
   </div>
 
   <script>
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const chatScreen = document.getElementById('chatScreen');
     const chatOutput = document.getElementById('chatOutput');
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
-    const startPrompt = document.getElementById('startPrompt');
-    const chatContainer = document.getElementById('chatContainer');
 
     let recognition;
 
@@ -127,7 +127,7 @@
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step: 'greet', isInitialLaunch: true }),
+          body: JSON.stringify({ step: 'greet', isInitialLaunch: true, limitSentences: true, avoidTechTalk: true }),
         });
 
         if (!response.ok) {
@@ -142,10 +142,10 @@
       }
     }
 
-    // Start the chatbot after user interaction
-    async function startChatbot() {
-      startPrompt.style.display = "none"; // Hide the start prompt
-      chatContainer.style.display = "block"; // Show the chat interface
+    // Load Chat Screen
+    async function startChat() {
+      welcomeScreen.style.display = 'none';
+      chatScreen.style.display = 'block';
 
       const initialResponse = await fetchInitialGreeting();
       addMessage("Assistant", initialResponse);
@@ -205,8 +205,8 @@
       }
     }
 
-    // Add click event listener to the start prompt
-    startPrompt.addEventListener("click", startChatbot);
+    // Start Chat on Tap
+    welcomeScreen.addEventListener('click', startChat);
   </script>
 </body>
 </html>
