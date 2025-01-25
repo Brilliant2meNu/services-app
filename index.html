@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jingmei Ko - Services Area</title>
+    <title>Jingmei Ko - Interactive Chat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 20px;
         }
-
-        h1 {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
+        h1 { font-size: 24px; font-weight: bold; }
         .button {
             display: inline-block;
             margin: 10px;
@@ -27,25 +22,10 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
-        .button:hover {
-            background-color: #0056b3;
-        }
-
-        .green-button {
-            background-color: #28a745;
-        }
-
-        .green-button:hover {
-            background-color: #1e7e34;
-        }
-
-        #chatInput {
-            width: 300px;
-            padding: 10px;
-            margin-top: 10px;
-        }
-
+        .button:hover { background-color: #0056b3; }
+        .green-button { background-color: #28a745; }
+        .green-button:hover { background-color: #1e7e34; }
+        #chatInput { width: 300px; padding: 10px; margin-top: 10px; }
         #chatOutput {
             margin-top: 20px;
             padding: 10px;
@@ -53,120 +33,81 @@
             border-radius: 5px;
             min-height: 50px;
         }
-
-        #icons img {
-            width: 50px;
-            margin: 5px;
-        }
     </style>
 </head>
 <body>
-    <img src="JMK.jpg" alt="JMK Logo" style="width: 200px;">
-    <h1>Services Area</h1>
-    <div id="icons">
-        <img src="keyboard-icon_v1.png" alt="Keyboard Icon">
-        <img src="microphone-icon_v1.png" alt="Microphone Icon">
-    </div>
-    <div>
-        <button class="button green-button" onclick="generateQRCode()">Generate QR Code</button>
-        <button class="button" onclick="loginAsAdmin()">Login as Admin</button>
-        <button class="button" onclick="validateSession()">Validate Session</button>
-    </div>
-    <div>
-        <button id="voiceButton" class="button">🎤 Speak</button>
-        <input type="text" id="chatInput" placeholder="Type or use the mic...">
-        <button id="sendButton" class="button">Send</button>
-    </div>
-    <div id="chatOutput">Chat will appear here...</div>
+    <h1>Jingmei Ko - Interactive Chat</h1>
+    <button id="voiceButton" class="button">🎤 Speak</button>
+    <input type="text" id="chatInput" placeholder="Type your query here...">
+    <button id="sendButton" class="button green-button">Send</button>
+    <div id="chatOutput">Responses will appear here...</div>
 
-    <script type="module">
-        // Greet the user with a spoken message
-        window.onload = () => {
-            const welcomeMessage = "Welcome to Jingmei Ko's Services Area. How can I assist you today?";
-            speakMessage(welcomeMessage);
-        };
-
-        // Voice Recognition and Chat
+    <script>
+        // Initialize variables
         const voiceButton = document.getElementById('voiceButton');
         const chatInput = document.getElementById('chatInput');
         const chatOutput = document.getElementById('chatOutput');
         const sendButton = document.getElementById('sendButton');
 
-        // Voice Recognition Functionality
-        voiceButton.addEventListener('click', () => {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                chatInput.value = transcript;
-            };
-
-            recognition.onerror = (err) => {
-                console.error("Voice input error:", err);
-                alert("Microphone access is needed!");
-            };
-
-            recognition.start();
-        });
-
-        // Sending User Message to Backend
-        sendButton.addEventListener('click', async () => {
-            const userInput = chatInput.value.trim();
-            if (!userInput) {
-                alert("Please enter a message or use the mic!");
-                return;
-            }
-
-            const response = await fetchBackendGPTResponse(userInput);
-            chatOutput.innerText = response;
-            speakMessage(response); // Speak the response back to the user
-        });
-
-        // Function to Communicate with the Backend
-        async function fetchBackendGPTResponse(userInput) {
-            try {
-                const response = await fetch("/api/chat", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ message: userInput })
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch response from the server");
-                }
-
-                const data = await response.json();
-                return data.reply;
-            } catch (error) {
-                console.error("Error fetching GPT response:", error);
-                return "Sorry, something went wrong.";
-            }
-        }
-
-        // Text-to-Speech Function to Speak a Message
+        // Text-to-Speech Function
         function speakMessage(message) {
             const utterance = new SpeechSynthesisUtterance(message);
             utterance.lang = 'en-US';
             window.speechSynthesis.speak(utterance);
         }
 
-        // Mock QR Code Generation Function
-        function generateQRCode() {
-            alert("QR Code generation feature is coming soon!");
+        // Voice Recognition Setup
+        voiceButton.addEventListener('click', () => {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Voice recognition not supported in this browser.");
+                return;
+            }
+
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+                fetchChatResponse(transcript); // Automatically send after voice input
+            };
+            recognition.onerror = (err) => {
+                console.error("Speech recognition error:", err);
+                alert("Error using microphone. Check permissions.");
+            };
+            recognition.start();
+        });
+
+        // Fetch Chat Response
+        async function fetchChatResponse(message) {
+            chatOutput.innerText = "Processing...";
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!response.ok) throw new Error("Server error: " + response.status);
+
+                const data = await response.json();
+                const reply = data.reply;
+                chatOutput.innerText = reply;
+                speakMessage(reply); // Speak the reply
+            } catch (error) {
+                console.error("Error fetching chat response:", error);
+                chatOutput.innerText = "Sorry, something went wrong.";
+            }
         }
 
-        // Mock Login Function
-        function loginAsAdmin() {
-            alert("Login as Admin functionality is under construction!");
-        }
-
-        // Mock Session Validation Function
-        function validateSession() {
-            alert("Session validation feature is not available yet!");
-        }
+        // Send Button Event
+        sendButton.addEventListener('click', () => {
+            const userInput = chatInput.value.trim();
+            if (!userInput) {
+                alert("Please enter a message.");
+                return;
+            }
+            fetchChatResponse(userInput);
+        });
     </script>
 </body>
 </html>
