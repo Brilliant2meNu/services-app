@@ -14,12 +14,15 @@ export default async function handler(req, res) {
     const bookingLink =
       "https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services?buttonTextColor=ffffff&category_id=MJNRZ4AEDUMOPJ7YUJ2FZIRT&color=000000&locale=en&referrer=so";
 
-    // Auto-initiate greeting if no step is provided
-    if (!step) {
+    // Special case for immediate greeting process
+    if (step === "greet") {
       responseContent =
-        "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. You can respond by tapping the mic button or typing your response. " +
-        "Are you an existing client? If so, please log into your account. If not, please provide your first name, last name, and email so we can assist you better.";
+        "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. " +
+        "To get started, please log into your account if you're an existing client. " +
+        "If not, type your first name, last name, and email so we can assist you better. " +
+        "You can respond by pressing the mic button or typing in your response.";
     } else {
+      // Main flow for user-driven interactions
       switch (step) {
         case "collectInfo":
           if (userData?.firstName && userData?.lastName && userData?.email) {
