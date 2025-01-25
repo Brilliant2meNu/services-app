@@ -70,52 +70,84 @@
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
 
+    let recognition;
+    let isListening = false;
+
+    // Initialize Voice Recognition
+    function startVoiceRecognition() {
+      if (!recognition) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          chatInput.value = transcript;
+          handleSendMessage(transcript); // Automatically send the transcribed message
+        };
+
+        recognition.onerror = () => {
+          alert("Microphone access is required for voice input!");
+        };
+
+        recognition.onend = () => {
+          if (isListening) {
+            startVoiceRecognition(); // Restart voice recognition after a response
+          }
+        };
+      }
+      recognition.start();
+    }
+
     // Speak Text Using Speech Synthesis
-    function speakText(text) {
+    function speakText(text, callback) {
       const speech = new SpeechSynthesisUtterance(text);
       speech.lang = 'en-US';
       speech.pitch = 1;
       speech.rate = 1;
       speech.volume = 1;
+
+      speech.onend = callback; // Callback after speaking ends
       window.speechSynthesis.speak(speech);
     }
 
-    // Initial Greeting on Page Load
+    // Handle Initial Greeting
     window.onload = async () => {
       const initialResponse = "Hello! How can I assist you today?";
       addMessage("Assistant", initialResponse);
-      speakText(initialResponse);
+      speakText(initialResponse, () => {
+        // Start listening after the greeting
+        isListening = true;
+        startVoiceRecognition();
+      });
     };
 
     // Handle Sending Messages
+    async function handleSendMessage(userMessage) {
+      addMessage("You", userMessage);
+      isListening = false; // Pause listening while the chatbot responds
+      const botResponse = await fetchBackendGPTResponse(userMessage);
+      addMessage("Assistant", botResponse);
+      speakText(botResponse, () => {
+        isListening = true; // Resume listening after the response
+        startVoiceRecognition();
+      });
+      chatInput.value = '';
+    }
+
+    // Send Button Event Listener
     sendButton.addEventListener('click', async () => {
       const userMessage = chatInput.value.trim();
       if (!userMessage) {
         alert("Please enter a message!");
         return;
       }
-      addMessage("You", userMessage);
-      const botResponse = await fetchBackendGPTResponse(userMessage);
-      addMessage("Assistant", botResponse);
-      speakText(botResponse);
-      chatInput.value = '';
+      handleSendMessage(userMessage);
     });
 
-    // Voice Recognition for Input
+    // Voice Button Event Listener
     voiceButton.addEventListener('click', () => {
-      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-      recognition.lang = 'en-US';
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        chatInput.value = transcript;
-      };
-
-      recognition.onerror = () => {
-        alert("Microphone access is required for voice input!");
-      };
-
-      recognition.start();
+      isListening = true;
+      startVoiceRecognition();
     });
 
     // Add Messages to the Chat Output
