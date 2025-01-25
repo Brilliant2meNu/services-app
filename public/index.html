@@ -81,6 +81,12 @@
       background-color: #0056b3;
     }
 
+    #permissionMessage {
+      color: red;
+      font-size: 0.9rem;
+      display: none;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       body {
@@ -113,140 +119,5 @@
 
   <div id="chatScreen" class="container">
     <h1>Chatbot</h1>
-    <div id="chatOutput">Loading chatbot...</div>
-    <div class="input-area">
-      <input type="text" id="chatInput" placeholder="Type your message here">
-      <button id="sendButton">Send</button>
-      <button id="voiceButton">🎤</button>
-    </div>
-  </div>
-
-  <script>
-    const welcomeScreen = document.getElementById('welcomeScreen');
-    const chatScreen = document.getElementById('chatScreen');
-    const chatOutput = document.getElementById('chatOutput');
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const voiceButton = document.getElementById('voiceButton');
-
-    let recognition;
-
-    // Initialize Voice Recognition
-    function startVoiceRecognition() {
-      if (!recognition) {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          chatInput.value = transcript;
-          handleSendMessage(transcript); // Automatically send the transcribed message
-        };
-
-        recognition.onerror = () => {
-          alert("Microphone access is required for voice input!");
-        };
-      }
-      recognition.start();
-    }
-
-    // Speak Text Using Speech Synthesis
-    function speakText(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.lang = 'en-US';
-      speech.pitch = 1;
-      speech.rate = 1;
-      speech.volume = 1;
-
-      window.speechSynthesis.speak(speech);
-    }
-
-    // Handle Initial Greeting
-    async function fetchInitialGreeting() {
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step: 'greet', isInitialLaunch: true, limitSentences: true, avoidTechTalk: true }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch the greeting.");
-        }
-
-        const data = await response.json();
-        return data.reply;
-      } catch (error) {
-        console.error(error);
-        return "Sorry, something went wrong while starting the chatbot.";
-      }
-    }
-
-    // Load Chat Screen
-    async function startChat() {
-      welcomeScreen.style.display = 'none';
-      chatScreen.style.display = 'block';
-
-      const initialResponse = await fetchInitialGreeting();
-      addMessage("Assistant", initialResponse);
-      speakText(initialResponse); // Automatically speak the greeting
-    }
-
-    // Handle Sending Messages
-    async function handleSendMessage(userMessage) {
-      addMessage("You", userMessage);
-      const botResponse = await fetchBackendGPTResponse(userMessage);
-      addMessage("Assistant", botResponse);
-      speakText(botResponse); // Automatically speak the assistant's response
-      chatInput.value = '';
-    }
-
-    // Send Button Event Listener
-    sendButton.addEventListener('click', async () => {
-      const userMessage = chatInput.value.trim();
-      if (!userMessage) {
-        alert("Please enter a message!");
-        return;
-      }
-      handleSendMessage(userMessage);
-    });
-
-    // Voice Button Event Listener
-    voiceButton.addEventListener('click', () => {
-      startVoiceRecognition();
-    });
-
-    // Add Messages to the Chat Output
-    function addMessage(sender, message) {
-      const messageElement = document.createElement('div');
-      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatOutput.appendChild(messageElement);
-      chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll
-    }
-
-    // Fetch Backend GPT Response
-    async function fetchBackendGPTResponse(message) {
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, limitSentences: true, avoidTechTalk: true }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch response from the server.");
-        }
-
-        const data = await response.json();
-        return data.reply;
-      } catch (error) {
-        console.error(error);
-        return "Sorry, something went wrong!";
-      }
-    }
-
-    // Start Chat on Tap
-    welcomeScreen.addEventListener('click', startChat);
-  </script>
-</body>
-</html>
+    <div id="permissionMessage">Please enable microphone and speech permissions for full functionality.</div>
+    <div id="
