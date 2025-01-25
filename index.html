@@ -80,6 +80,12 @@
     <div id="chatOutput">Chat will appear here...</div>
 
     <script type="module">
+        // Greet the user with a spoken message
+        window.onload = () => {
+            const welcomeMessage = "Welcome to Jingmei Ko's Services Area. How can I assist you today?";
+            speakMessage(welcomeMessage);
+        };
+
         // Voice Recognition and Chat
         const voiceButton = document.getElementById('voiceButton');
         const chatInput = document.getElementById('chatInput');
@@ -114,6 +120,7 @@
 
             const response = await fetchBackendGPTResponse(userInput);
             chatOutput.innerText = response;
+            speakMessage(response); // Speak the response back to the user
         });
 
         // Function to Communicate with the Backend
@@ -137,6 +144,13 @@
                 console.error("Error fetching GPT response:", error);
                 return "Sorry, something went wrong.";
             }
+        }
+
+        // Text-to-Speech Function to Speak a Message
+        function speakMessage(message) {
+            const utterance = new SpeechSynthesisUtterance(message);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
         }
 
         // Mock QR Code Generation Function
