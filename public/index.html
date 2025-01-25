@@ -111,7 +111,7 @@
     }
 
     // Handle Initial Greeting
-    window.onload = async () => {
+    async function fetchInitialGreeting() {
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -124,18 +124,21 @@
         }
 
         const data = await response.json();
-        const initialResponse = data.reply;
-
-        addMessage("Assistant", initialResponse);
-        speakText(initialResponse, () => {
-          // Start listening after the greeting
-          isListening = true;
-          startVoiceRecognition();
-        });
+        return data.reply;
       } catch (error) {
         console.error(error);
-        addMessage("Assistant", "Sorry, something went wrong while starting the chatbot.");
+        return "Sorry, something went wrong while starting the chatbot.";
       }
+    }
+
+    window.onload = async () => {
+      const initialResponse = await fetchInitialGreeting();
+      addMessage("Assistant", initialResponse);
+      speakText(initialResponse, () => {
+        // Start listening after the greeting
+        isListening = true;
+        startVoiceRecognition();
+      });
     };
 
     // Handle Sending Messages
