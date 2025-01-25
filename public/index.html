@@ -1,0 +1,189 @@
+import React, { useState, useEffect } from "react";
+
+const App = () => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const recognition =
+    typeof window !== "undefined" &&
+    (window.SpeechRecognition || window.webkitSpeechRecognition)
+      ? new (window.SpeechRecognition || window.webkitSpeechRecognition)()
+      : null;
+
+  useEffect(() => {
+    // Automatically greet the user upon loading the app
+    const greetUser = async () => {
+      const response = await fetchBackendGPTResponse("Hello!");
+      setMessages((prev) => [
+        ...prev,
+        { role: "system", content: response },
+      ]);
+    };
+
+    greetUser();
+  }, []);
+
+  const handleSendMessage = async () => {
+    if (!input.trim()) return alert("Enter a message or speak into the mic!");
+
+    setMessages((prev) => [...prev, { role: "user", content: input }]);
+    const response = await fetchBackendGPTResponse(input);
+    setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+    setInput("");
+  };
+
+  const fetchBackendGPTResponse = async (userInput) => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: userInput }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch response from the server.");
+      }
+
+      const data = await response.json();
+      return data.reply;
+    } catch (error) {
+      console.error("Error fetching GPT response:", error);
+      return "Sorry, something went wrong.";
+    }
+  };
+
+  const startVoiceRecognition = () => {
+    if (!recognition) {
+      alert("Your browser does not support voice recognition.");
+      return;
+    }
+
+    setIsListening(true);
+    recognition.lang = "en-US";
+    recognition.start();
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (err) => {
+      console.error("Voice recognition error:", err);
+      alert("Microphone access is needed!");
+      setIsListening(false);
+    };
+  };
+
+  const generateQRCode = () => {
+    alert("QR Code generation feature is coming soon!");
+  };
+
+  const loginAsAdmin = () => {
+    alert("Login as Admin functionality is under construction!");
+  };
+
+  const validateSession = () => {
+    alert("Session validation feature is not available yet!");
+  };
+
+  return (
+    <div style={styles.container}>
+      <img src="/JMK.jpg" alt="JMK Logo" style={styles.logo} />
+      <h1>Services Area</h1>
+      <div style={styles.iconsContainer}>
+        <img src="/keyboard-icon_v1.png" alt="Keyboard Icon" style={styles.icon} />
+        <img src="/microphone-icon_v1.png" alt="Microphone Icon" style={styles.icon} />
+      </div>
+      <div>
+        <button style={styles.greenButton} onClick={generateQRCode}>
+          Generate QR Code
+        </button>
+        <button style={styles.button} onClick={loginAsAdmin}>
+          Login as Admin
+        </button>
+        <button style={styles.button} onClick={validateSession}>
+          Validate Session
+        </button>
+      </div>
+      <div style={styles.chatArea}>
+        <div style={styles.messages}>
+          {messages.map((msg, idx) => (
+            <div
+              key={idx}
+              style={{
+                color: msg.role === "user" ? "#007BFF" : "#28a745",
+                marginBottom: "10px",
+              }}
+            >
+              <b>{msg.role === "user" ? "You" : "Assistant"}:</b> {msg.content}
+            </div>
+          ))}
+        </div>
+        <div style={styles.inputArea}>
+          <button
+            style={styles.voiceButton}
+            onClick={startVoiceRecognition}
+            disabled={isListening}
+          >
+            🎤 {isListening ? "Listening..." : "Speak"}
+          </button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type or use the mic..."
+            style={styles.input}
+          />
+          <button style={styles.button} onClick={handleSendMessage}>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const styles = {
+  container: { fontFamily: "Arial, sans-serif", textAlign: "center", margin: 20 },
+  logo: { width: 200 },
+  iconsContainer: { display: "flex", justifyContent: "center", gap: 10 },
+  icon: { width: 50 },
+  button: {
+    margin: 10,
+    padding: "10px 20px",
+    fontSize: 16,
+    color: "#fff",
+    backgroundColor: "#007BFF",
+    border: "none",
+    borderRadius: 5,
+    cursor: "pointer",
+  },
+  greenButton: {
+    margin: 10,
+    padding: "10px 20px",
+    fontSize: 16,
+    color: "#fff",
+    backgroundColor: "#28a745",
+    border: "none",
+    borderRadius: 5,
+    cursor: "pointer",
+  },
+  chatArea: { marginTop: 20 },
+  messages: {
+    textAlign: "left",
+    maxHeight: 300,
+    overflowY: "auto",
+    border: "1px solid #ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  inputArea: { display: "flex", justifyContent: "center", gap: 10 },
+  input: { width: 300, padding: 10 },
+  voiceButton: { ...this.button, backgroundColor: "#FFA500" },
+};
+
+export default App;
