@@ -51,10 +51,27 @@
     .input-area button:hover {
       background-color: #0056b3;
     }
+
+    #startPrompt {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      z-index: 10;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div id="startPrompt">Click anywhere to start the chatbot</div>
+  <div class="container" style="display: none;" id="chatContainer">
     <h1>Chatbot</h1>
     <div id="chatOutput">Loading chatbot...</div>
     <div class="input-area">
@@ -69,6 +86,8 @@
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
+    const startPrompt = document.getElementById('startPrompt');
+    const chatContainer = document.getElementById('chatContainer');
 
     let recognition;
     let isListening = false;
@@ -130,12 +149,15 @@
       }
     }
 
-    // Automatically Start Chat on Page Load
-    window.onload = async () => {
+    // Start the chatbot after user interaction
+    async function startChatbot() {
+      startPrompt.style.display = "none"; // Hide the start prompt
+      chatContainer.style.display = "block"; // Show the chat interface
+
       const initialResponse = await fetchInitialGreeting();
       addMessage("Assistant", initialResponse);
       speakText(initialResponse); // Automatically speak the greeting
-    };
+    }
 
     // Handle Sending Messages
     async function handleSendMessage(userMessage) {
@@ -190,6 +212,9 @@
         return "Sorry, something went wrong!";
       }
     }
+
+    // Add click event listener to the start prompt
+    startPrompt.addEventListener("click", startChatbot);
   </script>
 </body>
 </html>
