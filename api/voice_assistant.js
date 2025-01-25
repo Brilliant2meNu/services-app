@@ -7,21 +7,21 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { text, step, userData } = req.body;
+  const { text, step, userData, isInitialLaunch } = req.body;
 
   try {
     let responseContent = "";
     const bookingLink =
       "https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services?buttonTextColor=ffffff&category_id=MJNRZ4AEDUMOPJ7YUJ2FZIRT&color=000000&locale=en&referrer=so";
 
-    // Special case for immediate greeting process
-    if (step === "greet") {
+    // Handle initial greeting on app launch
+    if (isInitialLaunch) {
       responseContent =
         "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. " +
         "To get started, please log into your account if you're an existing client. " +
         "If not, type your first name, last name, and email so we can assist you better. " +
         "You can respond by pressing the mic button or typing in your response.";
-    } else {
+    } else if (step) {
       // Main flow for user-driven interactions
       switch (step) {
         case "collectInfo":
@@ -68,6 +68,8 @@ export default async function handler(req, res) {
           responseContent = "Thank you for using our assistant. We look forward to seeing you at the salon!";
           break;
       }
+    } else {
+      responseContent = "Tap the mic button or type your message to get started.";
     }
 
     // Send response back to the client
