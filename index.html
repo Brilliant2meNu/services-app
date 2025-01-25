@@ -10,7 +10,12 @@
             text-align: center;
             margin: 20px;
         }
-        h1 { font-size: 24px; font-weight: bold; }
+
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
         .button {
             display: inline-block;
             margin: 10px;
@@ -22,10 +27,25 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .button:hover { background-color: #0056b3; }
-        .green-button { background-color: #28a745; }
-        .green-button:hover { background-color: #1e7e34; }
-        #chatInput { width: 300px; padding: 10px; margin-top: 10px; }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .green-button {
+            background-color: #28a745;
+        }
+
+        .green-button:hover {
+            background-color: #1e7e34;
+        }
+
+        #chatInput {
+            width: 300px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
         #chatOutput {
             margin-top: 20px;
             padding: 10px;
@@ -33,30 +53,52 @@
             border-radius: 5px;
             min-height: 50px;
         }
+
+        #icons img {
+            width: 50px;
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
-    <h1>Jingmei Ko - Interactive Chat</h1>
-    <button id="voiceButton" class="button">🎤 Speak</button>
-    <input type="text" id="chatInput" placeholder="Type your query here...">
-    <button id="sendButton" class="button green-button">Send</button>
+    <img src="JMK.jpg" alt="JMK Logo" style="width: 200px;">
+    <h1>Services Area</h1>
+    <div id="icons">
+        <img src="keyboard-icon_v1.png" alt="Keyboard Icon">
+        <img src="microphone-icon_v1.png" alt="Microphone Icon">
+    </div>
+    <div>
+        <button class="button green-button" onclick="generateQRCode()">Generate QR Code</button>
+        <button class="button" onclick="loginAsAdmin()">Login as Admin</button>
+        <button class="button" onclick="validateSession()">Validate Session</button>
+    </div>
+    <div>
+        <button id="voiceButton" class="button">🎤 Speak</button>
+        <input type="text" id="chatInput" placeholder="Type your query here...">
+        <button id="sendButton" class="button green-button">Send</button>
+    </div>
     <div id="chatOutput">Responses will appear here...</div>
 
-    <script>
+    <script type="module">
         // Initialize variables
         const voiceButton = document.getElementById('voiceButton');
         const chatInput = document.getElementById('chatInput');
         const chatOutput = document.getElementById('chatOutput');
         const sendButton = document.getElementById('sendButton');
 
-        // Text-to-Speech Function
+        // **Text-to-Speech Function**: Welcomes user upon page load
         function speakMessage(message) {
             const utterance = new SpeechSynthesisUtterance(message);
             utterance.lang = 'en-US';
             window.speechSynthesis.speak(utterance);
         }
 
-        // Voice Recognition Setup
+        // Greet the user on page load
+        window.onload = () => {
+            speakMessage("Welcome to Jingmei Ko Services. How can I assist you today?");
+        };
+
+        // **Voice Recognition Setup**
         voiceButton.addEventListener('click', () => {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 alert("Voice recognition not supported in this browser.");
@@ -77,7 +119,7 @@
             recognition.start();
         });
 
-        // Fetch Chat Response
+        // **Fetch Chat Response**
         async function fetchChatResponse(message) {
             chatOutput.innerText = "Processing...";
             try {
@@ -99,7 +141,7 @@
             }
         }
 
-        // Send Button Event
+        // **Send Button Event**
         sendButton.addEventListener('click', () => {
             const userInput = chatInput.value.trim();
             if (!userInput) {
@@ -108,6 +150,21 @@
             }
             fetchChatResponse(userInput);
         });
+
+        // Mock QR Code Generation Function
+        function generateQRCode() {
+            alert("QR Code generation feature is coming soon!");
+        }
+
+        // Mock Login Function
+        function loginAsAdmin() {
+            alert("Login as Admin functionality is under construction!");
+        }
+
+        // Mock Session Validation Function
+        function validateSession() {
+            alert("Session validation feature is not available yet!");
+        }
     </script>
 </body>
 </html>
