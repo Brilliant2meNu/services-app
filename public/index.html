@@ -112,13 +112,30 @@
 
     // Handle Initial Greeting
     window.onload = async () => {
-      const initialResponse = "Hello! How can I assist you today?";
-      addMessage("Assistant", initialResponse);
-      speakText(initialResponse, () => {
-        // Start listening after the greeting
-        isListening = true;
-        startVoiceRecognition();
-      });
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step: 'greet', isInitialLaunch: true }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch the greeting.");
+        }
+
+        const data = await response.json();
+        const initialResponse = data.reply;
+
+        addMessage("Assistant", initialResponse);
+        speakText(initialResponse, () => {
+          // Start listening after the greeting
+          isListening = true;
+          startVoiceRecognition();
+        });
+      } catch (error) {
+        console.error(error);
+        addMessage("Assistant", "Sorry, something went wrong while starting the chatbot.");
+      }
     };
 
     // Handle Sending Messages
