@@ -99,14 +99,13 @@
     }
 
     // Speak Text Using Speech Synthesis
-    function speakText(text, callback) {
+    function speakText(text) {
       const speech = new SpeechSynthesisUtterance(text);
       speech.lang = 'en-US';
       speech.pitch = 1;
       speech.rate = 1;
       speech.volume = 1;
 
-      speech.onend = callback; // Callback after speaking ends
       window.speechSynthesis.speak(speech);
     }
 
@@ -131,26 +130,19 @@
       }
     }
 
+    // On Page Load
     window.onload = async () => {
       const initialResponse = await fetchInitialGreeting();
       addMessage("Assistant", initialResponse);
-      speakText(initialResponse, () => {
-        // Start listening after the greeting
-        isListening = true;
-        startVoiceRecognition();
-      });
+      speakText(initialResponse); // Automatically speak the greeting
     };
 
     // Handle Sending Messages
     async function handleSendMessage(userMessage) {
       addMessage("You", userMessage);
-      isListening = false; // Pause listening while the chatbot responds
       const botResponse = await fetchBackendGPTResponse(userMessage);
       addMessage("Assistant", botResponse);
-      speakText(botResponse, () => {
-        isListening = true; // Resume listening after the response
-        startVoiceRecognition();
-      });
+      speakText(botResponse); // Automatically speak the assistant's response
       chatInput.value = '';
     }
 
