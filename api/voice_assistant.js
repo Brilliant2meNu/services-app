@@ -7,33 +7,72 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { text } = req.body;
+  const { text, step, userData } = req.body;
 
-  if (!text) {
-    return res.status(400).json({ error: "No text provided" });
+  if (!text && !step) {
+    return res.status(400).json({ error: "No input provided" });
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [{ role: "user", content: text }],
-      }),
-    });
+    let responseContent = "";
+    const bookingLink =
+      "https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services?buttonTextColor=ffffff&category_id=MJNRZ4AEDUMOPJ7YUJ2FZIRT&color=000000&locale=en&referrer=so";
 
-    const data = await response.json();
+    switch (step) {
+      case "greet":
+        responseContent =
+          "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. Please log into your account if you're an existing client or type your first name, last name, and email to get started.";
+        break;
 
-    if (response.ok) {
-      res.status(200).json({ reply: data.choices[0].message.content });
-    } else {
-      res.status(500).json({ error: data });
+      case "collectInfo":
+        if (userData?.firstName && userData?.lastName && userData?.email) {
+          responseContent = `Thank you, ${userData.firstName}! Your information has been saved. Can I ask you three quick questions about your skin?`;
+        } else {
+          responseContent =
+            "Please provide your first name, last name, and email for us to assist you better.";
+        }
+        break;
+
+      case "askSkinQuestions":
+        if (userData?.consent === "yes") {
+          responseContent =
+            "Great! Let's get started. Question 1: How would you describe your skin type (e.g., oily, dry, combination)? Question 2: Do you have any specific skin concerns you'd like to address? Question 3: How often do you currently follow a skincare routine?";
+        } else {
+          responseContent =
+            "No worries! Feel free to explore our services or check out our FAQ for more information.";
+        }
+        break;
+
+      case "recommend":
+        if (userData?.skinResponses) {
+          responseContent = `Based on your answers, we recommend:
+            - Service A for hydration and rejuvenation.
+            - Service B for targeting specific skin concerns.
+            Would you like to book a service now?`;
+        } else {
+          responseContent = "Please answer the questions so we can provide recommendations.";
+        }
+        break;
+
+      case "bookOrFaq":
+        if (text.toLowerCase() === "book") {
+          responseContent = `Fantastic! Redirecting you to our booking page: ${bookingLink}`;
+        } else if (text.toLowerCase() === "faq") {
+          responseContent = "Sure! Here's a placeholder for the FAQ section. More information coming soon.";
+        } else {
+          responseContent = "Let me know if you'd like to book or check out the FAQ!";
+        }
+        break;
+
+      default:
+        responseContent = "Thank you for using our assistant. We look forward to seeing you at the salon!";
+        break;
     }
+
+    // Send response back to the client
+    res.status(200).json({ reply: responseContent });
   } catch (error) {
-    res.status(500).json({ error: "Failed to communicate with OpenAI" });
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while processing your request." });
   }
 }
