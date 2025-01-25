@@ -130,7 +130,7 @@
       }
     }
 
-    // On Page Load
+    // Automatically Start Chat on Page Load
     window.onload = async () => {
       const initialResponse = await fetchInitialGreeting();
       addMessage("Assistant", initialResponse);
