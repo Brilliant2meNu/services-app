@@ -1,189 +1,126 @@
-import React, { useState, useEffect } from "react";
-
-const App = () => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [isListening, setIsListening] = useState(false);
-  const recognition =
-    typeof window !== "undefined" &&
-    (window.SpeechRecognition || window.webkitSpeechRecognition)
-      ? new (window.SpeechRecognition || window.webkitSpeechRecognition)()
-      : null;
-
-  useEffect(() => {
-    // Automatically greet the user upon loading the app
-    const greetUser = async () => {
-      const response = await fetchBackendGPTResponse("Hello!");
-      setMessages((prev) => [
-        ...prev,
-        { role: "system", content: response },
-      ]);
-    };
-
-    greetUser();
-  }, []);
-
-  const handleSendMessage = async () => {
-    if (!input.trim()) return alert("Enter a message or speak into the mic!");
-
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
-    const response = await fetchBackendGPTResponse(input);
-    setMessages((prev) => [...prev, { role: "assistant", content: response }]);
-    setInput("");
-  };
-
-  const fetchBackendGPTResponse = async (userInput) => {
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: userInput }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch response from the server.");
-      }
-
-      const data = await response.json();
-      return data.reply;
-    } catch (error) {
-      console.error("Error fetching GPT response:", error);
-      return "Sorry, something went wrong.";
-    }
-  };
-
-  const startVoiceRecognition = () => {
-    if (!recognition) {
-      alert("Your browser does not support voice recognition.");
-      return;
-    }
-
-    setIsListening(true);
-    recognition.lang = "en-US";
-    recognition.start();
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-      setIsListening(false);
-    };
-
-    recognition.onerror = (err) => {
-      console.error("Voice recognition error:", err);
-      alert("Microphone access is needed!");
-      setIsListening(false);
-    };
-  };
-
-  const generateQRCode = () => {
-    alert("QR Code generation feature is coming soon!");
-  };
-
-  const loginAsAdmin = () => {
-    alert("Login as Admin functionality is under construction!");
-  };
-
-  const validateSession = () => {
-    alert("Session validation feature is not available yet!");
-  };
-
-  return (
-    <div style={styles.container}>
-      <img src="/JMK.jpg" alt="JMK Logo" style={styles.logo} />
-      <h1>Services Area</h1>
-      <div style={styles.iconsContainer}>
-        <img src="/keyboard-icon_v1.png" alt="Keyboard Icon" style={styles.icon} />
-        <img src="/microphone-icon_v1.png" alt="Microphone Icon" style={styles.icon} />
-      </div>
-      <div>
-        <button style={styles.greenButton} onClick={generateQRCode}>
-          Generate QR Code
-        </button>
-        <button style={styles.button} onClick={loginAsAdmin}>
-          Login as Admin
-        </button>
-        <button style={styles.button} onClick={validateSession}>
-          Validate Session
-        </button>
-      </div>
-      <div style={styles.chatArea}>
-        <div style={styles.messages}>
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              style={{
-                color: msg.role === "user" ? "#007BFF" : "#28a745",
-                marginBottom: "10px",
-              }}
-            >
-              <b>{msg.role === "user" ? "You" : "Assistant"}:</b> {msg.content}
-            </div>
-          ))}
-        </div>
-        <div style={styles.inputArea}>
-          <button
-            style={styles.voiceButton}
-            onClick={startVoiceRecognition}
-            disabled={isListening}
-          >
-            🎤 {isListening ? "Listening..." : "Speak"}
-          </button>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type or use the mic..."
-            style={styles.input}
-          />
-          <button style={styles.button} onClick={handleSendMessage}>
-            Send
-          </button>
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jingmei Ko - Services Area</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .green-button {
+            background-color: #28a745;
+        }
+        .green-button:hover {
+            background-color: #1e7e34;
+        }
+        #chatOutput {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+        #chatInput {
+            width: 300px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <img src="JMK.jpg" alt="JMK Logo" style="width: 200px;">
+    <h1>Services Area</h1>
+    <div>
+        <button id="voiceButton" class="button">🎤 Speak</button>
+        <input type="text" id="chatInput" placeholder="Type or use the mic...">
+        <button id="sendButton" class="button">Send</button>
     </div>
-  );
-};
+    <div id="chatOutput">Chat will appear here...</div>
 
-const styles = {
-  container: { fontFamily: "Arial, sans-serif", textAlign: "center", margin: 20 },
-  logo: { width: 200 },
-  iconsContainer: { display: "flex", justifyContent: "center", gap: 10 },
-  icon: { width: 50 },
-  button: {
-    margin: 10,
-    padding: "10px 20px",
-    fontSize: 16,
-    color: "#fff",
-    backgroundColor: "#007BFF",
-    border: "none",
-    borderRadius: 5,
-    cursor: "pointer",
-  },
-  greenButton: {
-    margin: 10,
-    padding: "10px 20px",
-    fontSize: 16,
-    color: "#fff",
-    backgroundColor: "#28a745",
-    border: "none",
-    borderRadius: 5,
-    cursor: "pointer",
-  },
-  chatArea: { marginTop: 20 },
-  messages: {
-    textAlign: "left",
-    maxHeight: 300,
-    overflowY: "auto",
-    border: "1px solid #ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-  },
-  inputArea: { display: "flex", justifyContent: "center", gap: 10 },
-  input: { width: 300, padding: 10 },
-  voiceButton: { ...this.button, backgroundColor: "#FFA500" },
-};
+    <script>
+        // Voice Recognition and Chat
+        const voiceButton = document.getElementById('voiceButton');
+        const chatInput = document.getElementById('chatInput');
+        const chatOutput = document.getElementById('chatOutput');
+        const sendButton = document.getElementById('sendButton');
 
-export default App;
+        // Automatically greet the user upon page load
+        async function greetUser() {
+            const response = await fetchBackendGPTResponse("Hello!");
+            chatOutput.innerText = response;
+        }
+
+        // Voice Recognition Functionality
+        voiceButton.addEventListener('click', () => {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+            };
+
+            recognition.onerror = (err) => {
+                console.error("Voice input error:", err);
+                alert("Microphone access is needed!");
+            };
+
+            recognition.start();
+        });
+
+        // Sending User Message to Backend
+        sendButton.addEventListener('click', async () => {
+            const userInput = chatInput.value.trim();
+            if (!userInput) {
+                alert("Please enter a message or use the mic!");
+                return;
+            }
+
+            const response = await fetchBackendGPTResponse(userInput);
+            chatOutput.innerText = response;
+        });
+
+        // Communicate with the Backend
+        async function fetchBackendGPTResponse(input) {
+            try {
+                const response = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: input })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch response from the server");
+                }
+
+                const data = await response.json();
+                return data.reply;
+            } catch (error) {
+                console.error("Error fetching GPT response:", error);
+                return "Sorry, something went wrong.";
+            }
+        }
+
+        greetUser(); // Call the greetUser function on page load
+    </script>
+</body>
+</html>
