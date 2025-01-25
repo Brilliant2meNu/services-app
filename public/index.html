@@ -87,6 +87,22 @@
       display: none;
     }
 
+    .navigation-links {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .navigation-links a {
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 1rem;
+      color: #007BFF;
+    }
+
+    .navigation-links a:hover {
+      color: #0056b3;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
       body {
@@ -125,6 +141,14 @@
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
       <button id="voiceButton">🎤</button>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="navigation-links">
+      <a href="/admin.html">Admin Dashboard</a>
+      <a href="/login.html">User Login</a>
+      <a href="/premium.html">Premium Features</a>
+      <a href="/validate-session.html">Session Validation</a>
     </div>
   </div>
 
