@@ -70,10 +70,21 @@
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
 
-    // Initial Greeting
+    // Speak Text Using Speech Synthesis
+    function speakText(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.pitch = 1;
+      speech.rate = 1;
+      speech.volume = 1;
+      window.speechSynthesis.speak(speech);
+    }
+
+    // Initial Greeting on Page Load
     window.onload = async () => {
-      const initialResponse = await fetchBackendGPTResponse("Hello!");
+      const initialResponse = "Hello! How can I assist you today?";
       addMessage("Assistant", initialResponse);
+      speakText(initialResponse);
     };
 
     // Handle Sending Messages
@@ -86,10 +97,11 @@
       addMessage("You", userMessage);
       const botResponse = await fetchBackendGPTResponse(userMessage);
       addMessage("Assistant", botResponse);
+      speakText(botResponse);
       chatInput.value = '';
     });
 
-    // Voice Recognition
+    // Voice Recognition for Input
     voiceButton.addEventListener('click', () => {
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       recognition.lang = 'en-US';
