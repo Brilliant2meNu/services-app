@@ -222,9 +222,14 @@
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
 
-      const initialResponse = await fetchInitialGreeting();
-      addMessage("Assistant", initialResponse);
-      speakText(initialResponse); // Automatically speak the greeting
+      if (!localStorage.getItem('hasGreeted')) {
+        const initialResponse = await fetchInitialGreeting();
+        addMessage("Assistant", initialResponse);
+        speakText(initialResponse); // Automatically speak the greeting
+        localStorage.setItem('hasGreeted', 'true'); // Store greeting state
+      } else {
+        console.log("Greeting skipped as the user has already been greeted.");
+      }
     }
 
     // Handle Sending Messages
