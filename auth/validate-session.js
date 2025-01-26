@@ -1,21 +1,17 @@
 export default function handler(req, res) {
-  if (req.method === 'POST') {
-    const authHeader = req.headers.authorization;
+  if (req.method === "POST") {
+    const token = req.headers.authorization?.split(" ")[1];
 
-    if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header provided' });
+    if (token === "admin-token") {
+      return res.status(200).json({ role: "admin" });
+    } else if (token === "guest-token") {
+      return res.status(200).json({ role: "guest" });
+    } else if (token === "premium-token") {
+      return res.status(200).json({ role: "premium" });
     }
 
-    const token = authHeader.split(' ')[1]; // Extract the token from "Bearer <token>"
-
-    if (token === 'admin-token') {
-      return res.status(200).json({ message: 'Session valid', role: 'admin' });
-    } else if (token === 'premium-token') {
-      return res.status(200).json({ message: 'Session valid', role: 'premium' });
-    } else {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    return res.status(401).json({ message: "Invalid token" });
   }
 
-  res.status(405).json({ error: 'Method not allowed' });
+  return res.status(405).json({ message: "Method not allowed" });
 }
