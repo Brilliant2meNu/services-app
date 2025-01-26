@@ -73,19 +73,22 @@
       <ul>
         <li>Acne Facial</li>
         <li>Hydrojelly Facial</li>
+        <li>Deep Pore Cleansing</li>
       </ul>
     </section>
 
     <section>
       <h2>Salon Contact Info</h2>
       <address>
-        2746 Pacific Coast Highway<br>
-        <a href="tel:3105084898">Call Us</a>
+        2746 Pacific Coast Highway, Torrance, CA 90505<br>
+        <a href="tel:3105084898">310-508-4898</a><br>
+        <a href="mailto:info@beautybyjingmeiko.com">info@beautybyjingmeiko.com</a>
       </address>
     </section>
 
     <div class="navigation-links">
       <a href="/faq.html">FAQ</a>
+      <a href="/delete-info.html">Delete My Info</a>
     </div>
   </div>
 </body>
