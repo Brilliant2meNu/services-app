@@ -16,30 +16,74 @@
     .container {
       max-width: 800px;
       margin: 0 auto;
+      text-align: left;
       padding: 20px;
-      background: white;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
     }
 
-    h1 {
-      margin-bottom: 20px;
+    h1, h2 {
       color: #007BFF;
     }
 
-    .admin-links {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    section {
+      margin-bottom: 30px;
     }
 
-    .admin-links a {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    .button {
+      padding: 10px 15px;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    .navigation-links {
+      margin-top: 20px;
+    }
+
+    .navigation-links a {
       text-decoration: none;
-      font-size: 1.2rem;
+      margin: 0 10px;
+      font-size: 1rem;
       color: #007BFF;
     }
 
-    .admin-links a:hover {
+    .navigation-links a:hover {
       color: #0056b3;
     }
   </style>
@@ -47,12 +91,82 @@
 <body>
   <div class="container">
     <h1>Admin Dashboard</h1>
-    <p>Manage chatbot interactions, users, and settings from here.</p>
-    <div class="admin-links">
-      <a href="admin-login.html">Admin Login</a>
-      <a href="validate-session.html">Validate Session</a>
-      <a href="premium.html">Manage Premium Users</a>
+
+    <!-- Client Data -->
+    <section>
+      <h2>Client Data</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Client ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Recent Chat Usage</th>
+            <th>Last Interaction</th>
+          </tr>
+        </thead>
+        <tbody id="clientData">
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>john.doe@example.com</td>
+            <td>5 Questions</td>
+            <td>2025-01-25</td>
+          </tr>
+          <!-- More rows can be dynamically added -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Chat Usage -->
+    <section>
+      <h2>Chat Usage</h2>
+      <p>Monitor how many questions are being asked by clients and their responses.</p>
+      <textarea id="chatUsage" placeholder="No chat logs yet."></textarea>
+      <button class="button" onclick="refreshChatLogs()">Refresh Logs</button>
+    </section>
+
+    <!-- QR Code Generator -->
+    <section>
+      <h2>QR Code Generator</h2>
+      <p>Generate QR codes for access, specials, or events.</p>
+      <textarea id="qrCodeData" placeholder="Enter data for the QR code"></textarea>
+      <button class="button" onclick="generateQRCode()">Generate QR Code</button>
+      <div id="qrCodeOutput" style="margin-top: 10px;"></div>
+    </section>
+
+    <!-- Navigation Links -->
+    <div class="navigation-links">
+      <a href="/client-overview.html">Client Overview</a>
+      <a href="/faq.html">FAQ</a>
+      <a href="/settings.html">Admin Settings</a>
     </div>
   </div>
+
+  <script>
+    // Placeholder for refreshing chat logs
+    function refreshChatLogs() {
+      const chatUsage = document.getElementById('chatUsage');
+      chatUsage.value = "Loading chat logs...";
+      setTimeout(() => {
+        chatUsage.value = "Chat log example:\n1. John Doe: What service do you recommend?\n2. Assistant: Based on your profile, we recommend the Anti-Aging Facial.";
+      }, 2000);
+    }
+
+    // Placeholder for QR code generator
+    function generateQRCode() {
+      const qrCodeData = document.getElementById('qrCodeData').value.trim();
+      const qrCodeOutput = document.getElementById('qrCodeOutput');
+
+      if (!qrCodeData) {
+        alert("Please enter data for the QR code.");
+        return;
+      }
+
+      // Dynamically generate a QR code using Google Chart API
+      const qrCodeURL = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(qrCodeData)}`;
+      qrCodeOutput.innerHTML = `<img src="${qrCodeURL}" alt="QR Code">`;
+    }
+  </script>
 </body>
 </html>
