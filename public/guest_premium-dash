@@ -7,18 +7,17 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
       margin: 20px;
+      background-color: #f8f9fa;
     }
 
     .container {
       max-width: 600px;
       margin: 0 auto;
-      text-align: left;
       padding: 20px;
+      background: white;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      background: white;
     }
 
     h1, h2 {
@@ -33,6 +32,14 @@
 
     .navigation-links a:hover {
       color: #0056b3;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-top: 10px;
     }
   </style>
 </head>
