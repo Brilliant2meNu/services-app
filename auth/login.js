@@ -3,18 +3,18 @@ export default function handler(req, res) {
     const { email, password } = req.body;
 
     // Admin credentials
-    if (email === 'admin@admin.com' && password === 'ROOT') {
-      return res.status(200).json({ role: 'admin', token: "admin-token", message: 'Login successful' });
-    }
-
-    // Existing admin credentials
     if (email === 'admin@example.com' && password === 'admin123') {
-      return res.status(200).json({ role: 'admin', token: "admin-token", message: 'Login successful' });
+      return res.status(200).json({ role: 'admin', token: "admin-token", redirectUrl: "/admin.html", message: 'Login successful' });
     }
 
     // Premium user credentials
     if (email === 'premium@example.com' && password === 'premium123') {
-      return res.status(200).json({ role: 'premium', token: "premium-token", message: 'Login successful' });
+      return res.status(200).json({ role: 'premium', token: "premium-token", redirectUrl: "/guest_premium-dash.html", message: 'Login successful' });
+    }
+
+    // Guest user credentials
+    if (email === 'guest@example.com' && password === 'guest123') {
+      return res.status(200).json({ role: 'guest', token: "guest-token", redirectUrl: "/guest-dash.html", message: 'Login successful' });
     }
 
     // Invalid credentials
