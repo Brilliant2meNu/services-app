@@ -1,27 +1,57 @@
-export default function handler(req, res) {
-  if (req.method === "POST") {
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://your-supabase-url.supabase.co';
+const supabaseKey = 'your-supabase-anon-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      // Fetch user from Supabase
+      const { data: user, error } = await supabase
+        .from('auth_table')
+        .select('email, password, role')
+        .eq('email', email)
+        .single();
 
-    // Hardcoded credentials for testing
-    if (normalizedEmail === "admin@example.com" && password === "admin123") {
-      return res.status(200).json({ role: "admin", redirect: "/admin.html" });
-    } else if (normalizedEmail === "guest@example.com" && password === "guest123") {
-      return res.status(200).json({ role: "guest", redirect: "/guest-dash.html" });
-    } else if (normalizedEmail === "premium@example.com" && password === "premium123") {
-      return res.status(200).json({ role: "premium", redirect: "/guest_premium-dash.html" });
+      if (error || !user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      // Check if the provided password matches
+      if (user.password !== password) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      // Redirect based on the role
+      let redirectUrl = '';
+      switch (user.role) {
+        case 'admin':
+          redirectUrl = '/admin.html';
+          break;
+        case 'premium':
+          redirectUrl = '/guest_premium-dash.html';
+          break;
+        case 'regular':
+          redirectUrl = '/guest-dash.html';
+          break;
+        default:
+          return res.status(403).json({ message: 'Unauthorized role' });
+      }
+
+      return res.status(200).json({ role: user.role, redirect: redirectUrl });
+    } catch (err) {
+      console.error('Error during authentication:', err);
+      return res.status(500).json({ message: 'Internal server error' });
     }
-
-    // If credentials are invalid
-    console.log(`Invalid login attempt: email=${normalizedEmail}`); // Debugging log
-    return res.status(401).json({ message: "Invalid credentials" });
   }
 
   // If the request is not POST
-  return res.status(405).json({ message: "Method not allowed" });
+  return res.status(405).json({ message: 'Method not allowed' });
 }
