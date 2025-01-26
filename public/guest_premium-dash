@@ -8,11 +8,13 @@
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
+      margin: 20px;
     }
 
     .container {
-      margin: 20px auto;
-      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
       padding: 20px;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -22,24 +24,77 @@
     h1, h2 {
       color: #007BFF;
     }
+
+    section {
+      margin-bottom: 20px;
+    }
+
+    .navigation-links {
+      margin-top: 20px;
+    }
+
+    .navigation-links a {
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 1rem;
+      color: #007BFF;
+    }
+
+    .navigation-links a:hover {
+      color: #0056b3;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Guest Premium Dashboard</h1>
     <section>
-      <h2>Chat Assistant</h2>
-      <div>No interactions yet.</div>
+      <h2>Enhanced Chat Assistant</h2>
+      <div id="chatOutput">No interactions yet.</div>
     </section>
 
     <section>
       <h2>Priority Contact</h2>
-      <textarea placeholder="Message for staff"></textarea>
+      <p>Message our staff directly:</p>
+      <textarea id="priorityMessage" placeholder="Enter your message here"></textarea>
+      <button id="submitMessage" style="margin-top: 10px; padding: 10px 15px; border: none; border-radius: 5px; background-color: #007BFF; color: white; cursor: pointer;">
+        Submit
+      </button>
+    </section>
+
+    <section>
+      <h2>Salon Contact Info</h2>
+      <address>
+        2746 Pacific Coast Highway, Torrance, CA 90505<br>
+        <a href="tel:3105084898">310-508-4898</a><br>
+        <a href="mailto:info@beautybyjingmeiko.com">info@beautybyjingmeiko.com</a>
+      </address>
     </section>
 
     <div class="navigation-links">
       <a href="/faq.html">FAQ</a>
+      <a href="/delete-info.html">Delete My Info</a>
     </div>
   </div>
+
+  <script>
+    document.getElementById("submitMessage").addEventListener("click", () => {
+      const message = document.getElementById("priorityMessage").value;
+      if (message.trim()) {
+        alert("Message sent to staff. Thank you!");
+        document.getElementById("priorityMessage").value = ""; // Clear the textarea
+      } else {
+        alert("Please enter a message before submitting.");
+      }
+    });
+  </script>
 </body>
 </html>
