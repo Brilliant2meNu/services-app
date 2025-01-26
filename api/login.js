@@ -1,57 +1,184 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://your-supabase-url.supabase.co';
-const supabaseKey = 'your-supabase-anon-key';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f8f9fa;
+      margin: 20px;
     }
 
-    try {
-      // Fetch user from Supabase
-      const { data: user, error } = await supabase
-        .from('auth_table')
-        .select('email, password, role')
-        .eq('email', email)
-        .single();
-
-      if (error || !user) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Check if the provided password matches
-      if (user.password !== password) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      // Redirect based on the role
-      let redirectUrl = '';
-      switch (user.role) {
-        case 'admin':
-          redirectUrl = '/admin.html';
-          break;
-        case 'premium':
-          redirectUrl = '/guest_premium-dash.html';
-          break;
-        case 'regular':
-          redirectUrl = '/guest-dash.html';
-          break;
-        default:
-          return res.status(403).json({ message: 'Unauthorized role' });
-      }
-
-      return res.status(200).json({ role: user.role, redirect: redirectUrl });
-    } catch (err) {
-      console.error('Error during authentication:', err);
-      return res.status(500).json({ message: 'Internal server error' });
+    .login-container, .password-modal {
+      max-width: 400px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-  }
 
-  // If the request is not POST
-  return res.status(405).json({ message: 'Method not allowed' });
-}
+    .password-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 5;
+    }
+
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error {
+      color: red;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Login</h1>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+    <p class="error" id="error"></p>
+    <button id="changePasswordBtn">Create/Change Password</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  
+  <div class="password-modal" id="passwordModal">
+    <h2>Create/Change Password</h2>
+    <form id="passwordForm">
+      <input type="email" id="emailForPassword" placeholder="Email" required>
+      <input type="password" id="newPassword" placeholder="New Password" required>
+      <input type="password" id="confirmPassword" placeholder="Re-enter New Password" required>
+      <button type="submit">Save</button>
+    </form>
+    <button id="closeModal">Cancel</button>
+    <p class="error" id="passwordError"></p>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+    const passwordForm = document.getElementById("passwordForm");
+    const errorElement = document.getElementById("error");
+    const passwordError = document.getElementById("passwordError");
+    const passwordModal = document.getElementById("passwordModal");
+    const overlay = document.getElementById("overlay");
+    const changePasswordBtn = document.getElementById("changePasswordBtn");
+    const closeModal = document.getElementById("closeModal");
+
+    // Show password modal
+    changePasswordBtn.addEventListener("click", () => {
+      passwordModal.style.display = "block";
+      overlay.style.display = "block";
+    });
+
+    // Close modal
+    closeModal.addEventListener("click", () => {
+      passwordModal.style.display = "none";
+      overlay.style.display = "none";
+    });
+
+    // Login form submission
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          window.location.href = data.redirect; // Redirect based on role
+        } else {
+          const errorData = await response.json();
+          errorElement.textContent = errorData.message || "Invalid credentials";
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+        errorElement.textContent = "An error occurred. Please try again.";
+      }
+    });
+
+    // Password form submission
+    passwordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("emailForPassword").value.trim().toLowerCase();
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (newPassword !== confirmPassword) {
+        passwordError.textContent = "Passwords do not match.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/update-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, newPassword }),
+        });
+
+        if (response.ok) {
+          alert("Password updated successfully!");
+          passwordModal.style.display = "none";
+          overlay.style.display = "none";
+        } else {
+          const errorData = await response.json();
+          passwordError.textContent = errorData.message || "Failed to update password.";
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+        passwordError.textContent = "An error occurred. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>
