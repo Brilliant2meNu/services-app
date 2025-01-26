@@ -18,7 +18,7 @@ export default function handler(req, res) {
     }
 
     // If credentials are invalid
-    console.log(`Invalid login attempt: email=${email}`); // Optional for debugging
+    console.log(`Invalid login attempt: email=${normalizedEmail}`); // Debugging log
     return res.status(401).json({ message: "Invalid credentials" });
   }
 
