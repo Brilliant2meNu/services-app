@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guest Premium Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      text-align: center;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    h1, h2 {
+      color: #007BFF;
+    }
+
+    section {
+      margin-bottom: 20px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    ul li {
+      margin: 5px 0;
+    }
+
+    .navigation-links {
+      margin-top: 20px;
+    }
+
+    .navigation-links a {
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 1rem;
+      color: #007BFF;
+    }
+
+    .navigation-links a:hover {
+      color: #0056b3;
+    }
+
+    address {
+      font-style: normal;
+    }
+
+    #chatOutput {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      height: 300px;
+      overflow-y: auto;
+    }
+
+    .input-area {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .input-area button {
+      padding: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      flex: none;
+    }
+
+    .input-area button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Guest Premium Dashboard</h1>
+
+    <!-- Enhanced Chat Assistant -->
+    <section>
+      <h2>Enhanced Chat Assistant</h2>
+      <div id="chatOutput">No interactions yet.</div>
+      <div class="input-area">
+        <input type="text" id="chatInput" placeholder="Type your message here">
+        <button id="sendButton">Send</button>
+        <button id="voiceButton">🎤</button>
+      </div>
+    </section>
+
+    <!-- Service Recommendations -->
+    <section>
+      <h2>Service Recommendations</h2>
+      <ul id="serviceRecommendations">
+        <li>Custom Skincare Plan</li>
+        <li>Hydrotherapy Treatment</li>
+        <li>Personalized Consultation</li>
+      </ul>
+    </section>
+
+    <!-- Priority Contact -->
+    <section>
+      <h2>Priority Contact</h2>
+      <p>Our team is here for you. Use the text box below to send your message to our staff:</p>
+      <textarea id="priorityMessage" placeholder="Type your message here" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></textarea>
+      <button id="submitPriorityMessage" style="margin-top: 10px; background-color: #28a745; color: white;">Submit</button>
+      <p style="margin-top: 10px; font-size: 0.9rem;">Prefer mobile updates? Enable notifications in your account settings.</p>
+    </section>
+
+    <!-- Salon Contact Info -->
+    <section>
+      <h2>Salon Contact Information</h2>
+      <address>
+        2746 Pacific Coast Highway, Torrance, CA 90505<br>
+        Sola Salons Suite 23 (last door on the left-hand side)<br>
+        <a href="tel:3105084898">310-508-4898</a><br>
+        <a href="mailto:info@beautybyjingmeiko.com">info@beautybyjingmeiko.com</a>
+      </address>
+      <p>
+        Follow us on:
+        <a href="https://instagram.com">Instagram</a> |
+        <a href="https://facebook.com">Facebook</a>
+      </p>
+    </section>
+
+    <!-- Navigation Links -->
+    <div class="navigation-links">
+      <a href="/faq.html">FAQ</a>
+      <a href="/delete-info.html">Delete My Info</a>
+      <a href="/legal.html">Legal Notices</a>
+    </div>
+  </div>
+
+  <script>
+    const chatOutput = document.getElementById('chatOutput');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const voiceButton = document.getElementById('voiceButton');
+    const priorityMessageButton = document.getElementById('submitPriorityMessage');
+
+    let recognition;
+
+    // Initialize Voice Recognition
+    function startVoiceRecognition() {
+      if (!recognition) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          chatInput.value = transcript;
+          handleSendMessage(transcript);
+        };
+
+        recognition.onerror = (event) => {
+          alert("Microphone access is required for voice input!");
+        };
+      }
+      recognition.start();
+    }
+
+    // Speak Text Using Speech Synthesis
+    function speakText(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.pitch = 1;
+      speech.rate = 1;
+      speech.volume = 1;
+
+      window.speechSynthesis.speak(speech);
+    }
+
+    // Handle Sending Messages
+    async function handleSendMessage(userMessage) {
+      addMessage("You", userMessage);
+      const botResponse = await fetchBackendGPTResponse(userMessage);
+      addMessage("Assistant", botResponse);
+      speakText(botResponse);
+      chatInput.value = '';
+    }
+
+    // Send Button Event Listener
+    sendButton.addEventListener('click', async () => {
+      const userMessage = chatInput.value.trim();
+      if (!userMessage) {
+        alert("Please enter a message!");
+        return;
+      }
+      handleSendMessage(userMessage);
+    });
+
+    // Voice Button Event Listener
+    voiceButton.addEventListener('click', () => {
+      startVoiceRecognition();
+    });
+
+    // Add Messages to the Chat Output
+    function addMessage(sender, message) {
+      const messageElement = document.createElement('div');
+      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatOutput.appendChild(messageElement);
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }
+
+    // Handle Priority Contact Message
+    priorityMessageButton.addEventListener('click', () => {
+      const message = document.getElementById('priorityMessage').value;
+      if (message.trim()) {
+        alert("Your message has been sent to our staff!");
+        document.getElementById('priorityMessage').value = '';
+      } else {
+        alert("Please type a message before submitting.");
+      }
+    });
+
+    // Fetch Backend GPT Response
+    async function fetchBackendGPTResponse(message) {
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, limitSentences: true, avoidTechTalk: true }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch response from the server.");
+        }
+
+        const data = await response.json();
+        return data.reply;
+      } catch (error) {
+        console.error(error);
+        return "Sorry, something went wrong!";
+      }
+    }
+  </script>
+</body>
+</html>
