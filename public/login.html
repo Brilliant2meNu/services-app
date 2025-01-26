@@ -12,13 +12,37 @@
       margin: 20px;
     }
 
-    .login-container {
+    .login-container, .password-modal {
       max-width: 400px;
       margin: 0 auto;
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .password-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 5;
     }
 
     input {
@@ -58,14 +82,49 @@
       <button type="submit">Login</button>
     </form>
     <p class="error" id="error"></p>
+    <button id="changePasswordBtn">Create/Change Password</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  
+  <div class="password-modal" id="passwordModal">
+    <h2>Create/Change Password</h2>
+    <form id="passwordForm">
+      <input type="email" id="emailForPassword" placeholder="Email" required>
+      <input type="password" id="newPassword" placeholder="New Password" required>
+      <input type="password" id="confirmPassword" placeholder="Re-enter New Password" required>
+      <input type="text" id="passwordHint" placeholder="Password Hint (Optional)">
+      <button type="submit">Finish</button>
+    </form>
+    <button id="closeModal">Cancel</button>
+    <p class="error" id="passwordError"></p>
   </div>
 
   <script>
-    const form = document.getElementById("loginForm");
+    const loginForm = document.getElementById("loginForm");
+    const passwordForm = document.getElementById("passwordForm");
     const errorElement = document.getElementById("error");
+    const passwordError = document.getElementById("passwordError");
+    const passwordModal = document.getElementById("passwordModal");
+    const overlay = document.getElementById("overlay");
+    const changePasswordBtn = document.getElementById("changePasswordBtn");
+    const closeModal = document.getElementById("closeModal");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault(); // Prevent the form from reloading the page
+    // Show password modal
+    changePasswordBtn.addEventListener("click", () => {
+      passwordModal.style.display = "block";
+      overlay.style.display = "block";
+    });
+
+    // Close modal
+    closeModal.addEventListener("click", () => {
+      passwordModal.style.display = "none";
+      overlay.style.display = "none";
+    });
+
+    // Login form submission
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
       const email = document.getElementById("email").value.trim().toLowerCase();
       const password = document.getElementById("password").value;
 
@@ -78,17 +137,48 @@
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Login successful", data); // Debugging log
-          localStorage.setItem("role", data.role); // Optional: Store the role
-          window.location.href = data.redirect; // Redirect to the correct dashboard
+          window.location.href = data.redirect; // Redirect based on role
         } else {
           const errorData = await response.json();
-          console.log("Error response:", errorData); // Debugging log
           errorElement.textContent = errorData.message || "Invalid credentials";
         }
       } catch (error) {
-        console.error("An error occurred:", error); // Debugging log
+        console.error("An error occurred:", error);
         errorElement.textContent = "An error occurred. Please try again.";
+      }
+    });
+
+    // Password form submission
+    passwordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("emailForPassword").value.trim().toLowerCase();
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const passwordHint = document.getElementById("passwordHint").value;
+
+      if (newPassword !== confirmPassword) {
+        passwordError.textContent = "Passwords do not match.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/update-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, newPassword, passwordHint }),
+        });
+
+        if (response.ok) {
+          alert("Password updated successfully!");
+          passwordModal.style.display = "none";
+          overlay.style.display = "none";
+        } else {
+          const errorData = await response.json();
+          passwordError.textContent = errorData.message || "Failed to update password.";
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+        passwordError.textContent = "An error occurred. Please try again.";
       }
     });
   </script>
