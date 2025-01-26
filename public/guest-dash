@@ -31,32 +31,14 @@
       margin-bottom: 20px;
     }
 
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    ul li {
-      margin: 5px 0;
-    }
-
-    .navigation-links {
-      margin-top: 20px;
-    }
-
     .navigation-links a {
       text-decoration: none;
-      margin: 0 10px;
-      font-size: 1rem;
+      margin: 10px;
       color: #007BFF;
     }
 
     .navigation-links a:hover {
       color: #0056b3;
-    }
-
-    address {
-      font-style: normal;
     }
   </style>
 </head>
@@ -65,7 +47,7 @@
     <h1>Guest Dashboard</h1>
     <section>
       <h2>Chat Assistant</h2>
-      <div id="chatOutput">No interactions yet.</div>
+      <div>No interactions yet.</div>
     </section>
 
     <section>
@@ -77,18 +59,10 @@
       </ul>
     </section>
 
-    <section>
-      <h2>Salon Contact Info</h2>
-      <address>
-        2746 Pacific Coast Highway, Torrance, CA 90505<br>
-        <a href="tel:3105084898">310-508-4898</a><br>
-        <a href="mailto:info@beautybyjingmeiko.com">info@beautybyjingmeiko.com</a>
-      </address>
-    </section>
-
     <div class="navigation-links">
       <a href="/faq.html">FAQ</a>
       <a href="/delete-info.html">Delete My Info</a>
+      <a href="/index.html">Home</a>
     </div>
   </div>
 </body>
