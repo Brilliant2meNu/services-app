@@ -61,32 +61,34 @@
   </div>
 
   <script>
-    const form = document.getElementById('loginForm');
-    const errorElement = document.getElementById('error');
+    const form = document.getElementById("loginForm");
+    const errorElement = document.getElementById("error");
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault(); // Prevent the form from reloading the page
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
 
       try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          localStorage.setItem('token', data.token); // Save token
+          console.log("Login successful", data); // Debugging log
+          localStorage.setItem("role", data.role); // Optional: Store the role
           window.location.href = data.redirect; // Redirect to the correct dashboard
         } else {
           const errorData = await response.json();
-          errorElement.textContent = errorData.message || 'Invalid credentials';
+          console.log("Error response:", errorData); // Debugging log
+          errorElement.textContent = errorData.message || "Invalid credentials";
         }
       } catch (error) {
-        errorElement.textContent = 'An error occurred. Please try again.';
-        console.error(error);
+        console.error("An error occurred:", error); // Debugging log
+        errorElement.textContent = "An error occurred. Please try again.";
       }
     });
   </script>
