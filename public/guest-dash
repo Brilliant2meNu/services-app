@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guest Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      padding: 0;
+      text-align: center;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    h1, h2 {
+      color: #007BFF;
+    }
+
+    section {
+      margin-bottom: 20px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    ul li {
+      margin: 5px 0;
+    }
+
+    .navigation-links {
+      margin-top: 20px;
+    }
+
+    .navigation-links a {
+      text-decoration: none;
+      margin: 0 10px;
+      font-size: 1rem;
+      color: #007BFF;
+    }
+
+    .navigation-links a:hover {
+      color: #0056b3;
+    }
+
+    address {
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Guest Dashboard</h1>
+
+    <!-- Chat Assistant's Recorded Questions/Answers -->
+    <section>
+      <h2>Chat Assistant's Recorded Questions/Answers</h2>
+      <div id="chat
