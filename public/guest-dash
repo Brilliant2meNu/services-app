@@ -8,27 +8,20 @@
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      padding: 0;
-      text-align: center;
       background-color: #f8f9fa;
     }
 
     .container {
       max-width: 600px;
       margin: 0 auto;
-      text-align: left;
       padding: 20px;
+      background: white;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      background: white;
     }
 
     h1, h2 {
       color: #007BFF;
-    }
-
-    section {
-      margin-bottom: 20px;
     }
 
     .navigation-links a {
