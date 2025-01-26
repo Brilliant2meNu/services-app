@@ -1,3 +1,3 @@
 export default function handler(req, res) {
-  res.status(200).json({ message: "Logged out successfully" });
+  return res.status(200).json({ message: "Logged out successfully" });
 }
