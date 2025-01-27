@@ -132,94 +132,84 @@
       <a href="https://www.beautybyjingmeiko.com/contact" target="_blank">Contact</a>
       <a href="/FAQ.html">FAQ</a>
     </div>
+    <button id="testDbButton" style="margin-top: 20px; padding: 10px; background-color: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+      Test Database Connection
+    </button>
   </div>
 
-  <script>
-    const welcomeScreen = document.getElementById('welcomeScreen');
-    const firstTimeButton = document.getElementById('firstTime');
-    const returningButton = document.getElementById('returningGuest');
-    const chatScreen = document.getElementById('chatScreen');
-    const chatOutput = document.getElementById('chatOutput');
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const voiceButton = document.getElementById('voiceButton');
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzQyMzU4OSwiZXhwIjoyMDUyOTk5NTg5fQ.aYexEyL6Mb7Uk6iNYuWSaKS-Hkogv_1pb7vER9RLmOI";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const welcomeScreen = document.getElementById("welcomeScreen");
+    const firstTimeButton = document.getElementById("firstTime");
+    const returningButton = document.getElementById("returningGuest");
+    const chatScreen = document.getElementById("chatScreen");
+    const chatOutput = document.getElementById("chatOutput");
+    const chatInput = document.getElementById("chatInput");
+    const sendButton = document.getElementById("sendButton");
+    const voiceButton = document.getElementById("voiceButton");
+    const testDbButton = document.getElementById("testDbButton");
 
     let recognition;
     let userName = null;
 
-    // Initialize Voice Recognition
     function startVoiceRecognition() {
       if (!recognition) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
-
+        recognition.lang = "en-US";
         recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           chatInput.value = transcript;
           handleChatLogic(transcript);
         };
-
-        recognition.onerror = (event) => {
-          alert("Error: Microphone not accessible.");
-        };
+        recognition.onerror = () => alert("Error: Microphone not accessible.");
       }
       recognition.start();
     }
 
-    // Speak Text Using Speech Synthesis
     function speakText(text) {
       const speech = new SpeechSynthesisUtterance(text);
-      speech.lang = 'en-US';
-      speech.pitch = 1;
-      speech.rate = 1;
-      speech.volume = 1;
+      speech.lang = "en-US";
       window.speechSynthesis.speak(speech);
     }
 
-    // Show Chat Screen for First-Time Guest
-    firstTimeButton.addEventListener('click', () => {
-      welcomeScreen.style.display = 'none';
-      chatScreen.style.display = 'block';
-
-      // First Message: Introduction
+    firstTimeButton.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      chatScreen.style.display = "block";
       const introMessage = "Hi there! I’m your Salon Skin Assistant, here to help with all things beauty and skincare. What’s your name, beautiful?";
       addMessage("Assistant", introMessage);
       speakText(introMessage);
     });
 
-    // Returning Guest Placeholder
-    returningButton.addEventListener('click', () => {
-      welcomeScreen.style.display = 'none';
-      chatScreen.style.display = 'block';
+    returningButton.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      chatScreen.style.display = "block";
       const returningMessage = "Welcome back! Please log in to continue your beauty journey.";
       addMessage("Assistant", returningMessage);
       speakText(returningMessage);
     });
 
-    // Handle Sending Messages
-    sendButton.addEventListener('click', () => {
+    sendButton.addEventListener("click", () => {
       const userMessage = chatInput.value.trim();
       if (!userMessage) return;
-
       addMessage("You", userMessage);
       handleChatLogic(userMessage);
-      chatInput.value = '';
+      chatInput.value = "";
     });
 
-    // Voice Button Event Listener
-    voiceButton.addEventListener('click', () => {
-      startVoiceRecognition();
-    });
+    voiceButton.addEventListener("click", () => startVoiceRecognition());
 
-    // Add Messages to Chat Output
     function addMessage(sender, message) {
-      const messageElement = document.createElement('div');
+      const messageElement = document.createElement("div");
       messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
       chatOutput.appendChild(messageElement);
       chatOutput.scrollTop = chatOutput.scrollHeight;
     }
 
-    // Chat Logic
     function handleChatLogic(userMessage) {
       if (!userName) {
         userName = userMessage;
@@ -232,6 +222,28 @@
         speakText(followUpMessage);
       }
     }
+
+    testDbButton.addEventListener("click", async () => {
+      const testData = {
+        email: "test@example.com",
+        role: "tester",
+        is_active: true,
+        created_at: new Date().toISOString(),
+      };
+      try {
+        const { data, error } = await supabase.from("users").insert([testData]);
+        if (error) {
+          console.error("Database write failed:", error);
+          alert("Failed to write to the database. Check console for errors.");
+        } else {
+          console.log("Database write successful:", data);
+          alert("Success! Data written to the database.");
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        alert("An unexpected error occurred.");
+      }
+    });
   </script>
 </body>
 </html>
