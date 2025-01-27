@@ -141,36 +141,11 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin-right: 10px;
     }
 
     #infoModal button:hover {
       background-color: #0056b3;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      body {
-        margin: 10px;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .container {
-        width: 90%;
-        padding: 10px;
-      }
-
-      input, button {
-        padding: 10px;
-        font-size: 0.9rem;
-      }
-
-      #welcomeScreen {
-        font-size: 1.2rem;
-        padding: 10px;
-      }
     }
   </style>
 </head>
@@ -196,6 +171,7 @@
     <input type="text" id="firstName" placeholder="First Name">
     <input type="email" id="emailAddress" placeholder="Email Address">
     <button id="submitInfo">Submit</button>
+    <button id="closeModal">Back</button>
   </div>
 
   <script>
@@ -208,6 +184,7 @@
     const openModalLink = document.getElementById('openModalLink');
     const infoModal = document.getElementById('infoModal');
     const submitInfoButton = document.getElementById('submitInfo');
+    const closeModalButton = document.getElementById('closeModal');
     const permissionMessage = document.getElementById('permissionMessage');
 
     let recognition;
@@ -216,6 +193,11 @@
     openModalLink.addEventListener('click', (e) => {
       e.preventDefault();
       infoModal.style.display = 'block';
+    });
+
+    // Close Modal
+    closeModalButton.addEventListener('click', () => {
+      infoModal.style.display = 'none';
     });
 
     // Close Modal on Submission
@@ -232,10 +214,100 @@
       }
     });
 
-    // Start Chat on Tap
+    // Initialize Voice Recognition
+    function startVoiceRecognition() {
+      if (!recognition) {
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          chatInput.value = transcript;
+          handleSendMessage(transcript); // Automatically send the transcribed message
+        };
+
+        recognition.onerror = (event) => {
+          if (event.error === 'not-allowed') {
+            permissionMessage.style.display = 'block';
+          } else {
+            alert("Microphone access is required for voice input!");
+          }
+        };
+      }
+      recognition.start();
+    }
+
+    // Speak Text Using Speech Synthesis
+    function speakText(text) {
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'en-US';
+      speech.pitch = 1;
+      speech.rate = 1;
+      speech.volume = 1;
+
+      window.speechSynthesis.speak(speech);
+    }
+
+    // Fetch Backend GPT Response
+    async function fetchBackendGPTResponse(message) {
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, limitSentences: true }),
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch response from server.');
+
+        const data = await response.json();
+        return data.reply;
+      } catch (error) {
+        console.error(error);
+        return 'Sorry, something went wrong!';
+      }
+    }
+
+    // Handle Sending Messages
+    async function handleSendMessage(userMessage) {
+      addMessage("You", userMessage);
+      const botResponse = await fetchBackendGPTResponse(userMessage);
+      addMessage("Assistant", botResponse);
+      speakText(botResponse);
+      chatInput.value = '';
+    }
+
+    // Add Messages to the Chat Output
+    function addMessage(sender, message) {
+      const messageElement = document.createElement('div');
+      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatOutput.appendChild(messageElement);
+      chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll
+    }
+
+    // Start Chat
     welcomeScreen.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
+
+      fetchBackendGPTResponse("Hello").then((response) => {
+        addMessage("Assistant", response);
+        speakText(response);
+      });
+    });
+
+    // Voice Button Event Listener
+    voiceButton.addEventListener('click', () => {
+      startVoiceRecognition();
+    });
+
+    // Send Button Event Listener
+    sendButton.addEventListener('click', async () => {
+      const userMessage = chatInput.value.trim();
+      if (!userMessage) {
+        alert("Please enter a message!");
+        return;
+      }
+      handleSendMessage(userMessage);
     });
   </script>
 </body>
