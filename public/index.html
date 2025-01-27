@@ -13,128 +13,132 @@
       background-color: #f8f9fa;
     }
 
-    #welcomeScreen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #007BFF;
-      color: white;
-      font-size: 1.5rem;
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: left;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
       font-weight: bold;
     }
 
-    #userForm {
-      display: none;
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 20px;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      border-radius: 5px;
-      text-align: left;
-    }
-
-    #userForm input {
+    .form-group input {
       width: calc(100% - 20px);
       padding: 10px;
-      margin-bottom: 15px;
+      font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
 
-    #userForm button {
-      padding: 10px 20px;
+    .form-group button {
+      width: calc(50% - 10px);
+      padding: 10px;
+      font-size: 1rem;
+      cursor: pointer;
       background-color: #007BFF;
       color: white;
       border: none;
       border-radius: 5px;
-      cursor: pointer;
+      margin-right: 10px;
     }
 
-    #userForm button:hover {
+    .form-group button:hover {
       background-color: #0056b3;
     }
 
-    #resultMessage {
-      margin-top: 20px;
-      font-size: 1rem;
-      color: #ff0000;
+    .form-group .cancel {
+      background-color: #dc3545;
+    }
+
+    .form-group .cancel:hover {
+      background-color: #a71d2a;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <!-- Welcome Screen -->
-  <div id="welcomeScreen">
-    <h2>Add User to the Database</h2>
-    <button id="addUserButton">Add User</button>
-  </div>
-
-  <!-- User Form -->
-  <div id="userForm">
-    <h2>Add a New User</h2>
-    <label for="email">Email:</label>
-    <input type="email" id="email" placeholder="Enter email" required>
-    <label for="password">Password:</label>
-    <input type="password" id="password" placeholder="Enter password" required>
-    <label for="role">Role (admin, guest, premium):</label>
-    <input type="text" id="role" placeholder="Enter role (admin, guest, premium)" required>
-    <button id="submitUser">Submit</button>
-    <button id="cancelForm">Cancel</button>
-    <div id="resultMessage"></div>
+  <div class="container">
+    <h1>Add a New User</h1>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" placeholder="Enter email">
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="Enter password">
+    </div>
+    <div class="form-group">
+      <label for="role">Role (admin, guest, premium):</label>
+      <input type="text" id="role" placeholder="Enter role">
+    </div>
+    <div class="form-group">
+      <button id="submit">Submit</button>
+      <button class="cancel" id="cancel">Cancel</button>
+    </div>
+    <div class="error-message" id="error"></div>
   </div>
 
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-    const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co";
-    const supabaseKey = "YOUR_SERVICE_KEY_HERE"; // Replace with your actual key
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabaseUrl = 'https://ovmdpupofhhudxhitoov.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzQyMzU4OSwiZXhwIjoyMDUyOTk5NTg5fQ.aYexEyL6Mb7Uk6iNYuWSaKS-Hkogv_1pb7vER9RLmOI';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const welcomeScreen = document.getElementById("welcomeScreen");
-    const userForm = document.getElementById("userForm");
-    const addUserButton = document.getElementById("addUserButton");
-    const submitUser = document.getElementById("submitUser");
-    const cancelForm = document.getElementById("cancelForm");
-    const resultMessage = document.getElementById("resultMessage");
+    const submitButton = document.getElementById('submit');
+    const cancelButton = document.getElementById('cancel');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const roleInput = document.getElementById('role');
+    const errorDiv = document.getElementById('error');
 
-    addUserButton.addEventListener("click", () => {
-      welcomeScreen.style.display = "none";
-      userForm.style.display = "block";
-    });
+    submitButton.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const role = roleInput.value.trim();
 
-    cancelForm.addEventListener("click", () => {
-      userForm.style.display = "none";
-      welcomeScreen.style.display = "flex";
-    });
-
-    submitUser.addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const role = document.getElementById("role").value.trim().toLowerCase();
-
-      const validRoles = ["admin", "guest", "premium"];
-      if (!validRoles.includes(role)) {
-        resultMessage.innerText = "Invalid role! Please enter one of: admin, guest, premium.";
+      if (!email || !password || !role) {
+        errorDiv.textContent = 'All fields are required.';
         return;
       }
 
-      const { data, error } = await supabase
-        .from("auth_table")
-        .insert([{ email, password, role }]);
+      try {
+        const { data, error } = await supabase.from('auth_table').insert([
+          { email, password, role }
+        ]);
 
-      if (error) {
-        console.error("Database Write Error:", error);
-        resultMessage.innerText = `Error: ${error.message}`;
-      } else {
-        console.log("Database Write Success:", data);
-        resultMessage.innerText = "User added successfully!";
-        setTimeout(() => {
-          userForm.style.display = "none";
-          welcomeScreen.style.display = "flex";
-          resultMessage.innerText = "";
-        }, 2000);
+        if (error) {
+          throw error;
+        }
+
+        errorDiv.style.color = 'green';
+        errorDiv.textContent = 'User added successfully!';
+      } catch (error) {
+        errorDiv.style.color = 'red';
+        errorDiv.textContent = `Error: ${error.message}`;
       }
+    });
+
+    cancelButton.addEventListener('click', () => {
+      emailInput.value = '';
+      passwordInput.value = '';
+      roleInput.value = '';
+      errorDiv.textContent = '';
     });
   </script>
 </body>
