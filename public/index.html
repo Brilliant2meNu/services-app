@@ -155,7 +155,7 @@
   <div id="chatScreen" class="container">
     <h1>Chatbot</h1>
     <div id="permissionMessage">Please enable microphone and speech permissions for full functionality.</div>
-    <div id="chatOutput">Loading chatbot...</div>
+    <div id="chatOutput"></div>
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
@@ -185,109 +185,12 @@
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
-    const openModalLink = document.getElementById('openModalLink');
     const infoModal = document.getElementById('infoModal');
     const submitInfoButton = document.getElementById('submitInfo');
     const closeModalButton = document.getElementById('closeModal');
-    const permissionMessage = document.getElementById('permissionMessage');
 
     let recognition;
 
-    // Show Modal
-    openModalLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      infoModal.style.display = 'block';
-    });
-
-    // Close Modal
-    closeModalButton.addEventListener('click', () => {
-      infoModal.style.display = 'none';
-    });
-
-    // Close Modal on Submission
-    submitInfoButton.addEventListener('click', () => {
-      const firstName = document.getElementById('firstName').value.trim();
-      const emailAddress = document.getElementById('emailAddress').value.trim();
-
-      if (firstName && emailAddress) {
-        chatOutput.innerHTML += `<div><strong>Assistant:</strong> Thank you, ${firstName}! Your email has been registered.</div>`;
-        infoModal.style.display = 'none';
-      } else {
-        alert('Please fill out both fields!');
-      }
-    });
-
-    // Initialize Voice Recognition
-    function startVoiceRecognition() {
-      if (!recognition) {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          chatInput.value = transcript;
-          handleSendMessage(transcript);
-        };
-
-        recognition.onerror = (event) => {
-          if (event.error === 'not-allowed') {
-            permissionMessage.style.display = 'block';
-          } else {
-            alert("Microphone access is required for voice input!");
-          }
-        };
-      }
-      recognition.start();
-    }
-
-    // Speak Text Using Speech Synthesis
-    function speakText(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.lang = 'en-US';
-      speech.pitch = 1;
-      speech.rate = 1;
-      speech.volume = 1;
-
-      window.speechSynthesis.speak(speech);
-    }
-
-    // Fetch Backend GPT Response
-    async function fetchBackendGPTResponse(message) {
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, limitSentences: true }),
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch response from server.');
-
-        const data = await response.json();
-        return data.reply;
-      } catch (error) {
-        console.error(error);
-        return 'Sorry, something went wrong!';
-      }
-    }
-
-    // Handle Sending Messages
-    async function handleSendMessage(userMessage) {
-      addMessage("You", userMessage);
-      const botResponse = await fetchBackendGPTResponse(userMessage);
-      addMessage("Assistant", botResponse);
-      speakText(botResponse);
-      chatInput.value = '';
-    }
-
-    // Add Messages to the Chat Output
-    function addMessage(sender, message) {
-      const messageElement = document.createElement('div');
-      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatOutput.appendChild(messageElement);
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    }
-
-    // Start Chat
     welcomeScreen.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
@@ -298,20 +201,63 @@
       }, 1000);
     });
 
-    // Voice Button Event Listener
-    voiceButton.addEventListener('click', () => {
-      startVoiceRecognition();
+    document.body.addEventListener('click', (e) => {
+      if (e.target.id === 'openModalLink') {
+        e.preventDefault();
+        infoModal.style.display = 'block';
+      }
     });
 
-    // Send Button Event Listener
+    closeModalButton.addEventListener('click', () => {
+      infoModal.style.display = 'none';
+    });
+
+    submitInfoButton.addEventListener('click', () => {
+      const firstName = document.getElementById('firstName').value.trim();
+      const emailAddress = document.getElementById('emailAddress').value.trim();
+
+      if (firstName && emailAddress) {
+        addMessage("Assistant", `Thank you, ${firstName}! Your email has been registered.`);
+        infoModal.style.display = 'none';
+      } else {
+        alert('Please fill out both fields!');
+      }
+    });
+
     sendButton.addEventListener('click', async () => {
       const userMessage = chatInput.value.trim();
-      if (!userMessage) {
-        alert("Please enter a message!");
-        return;
-      }
-      handleSendMessage(userMessage);
+      if (!userMessage) return;
+      addMessage("You", userMessage);
+
+      const botResponse = await fetchBackendGPTResponse(userMessage);
+      addMessage("Assistant", botResponse);
+      chatInput.value = '';
     });
+
+    function addMessage(sender, message) {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatOutput.appendChild(div);
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }
+
+    async function fetchBackendGPTResponse(message) {
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+
+        if (!response.ok) throw new Error('Error fetching response');
+
+        const data = await response.json();
+        return data.reply;
+      } catch (error) {
+        console.error(error);
+        return "Sorry, something went wrong.";
+      }
+    }
   </script>
 </body>
 </html>
