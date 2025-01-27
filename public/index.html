@@ -90,6 +90,12 @@
       background-color: #218838;
     }
 
+    #userForm {
+      display: none;
+      margin-top: 20px;
+      text-align: center;
+    }
+
     .navigation-links {
       margin-top: 20px;
     }
@@ -135,7 +141,26 @@
     </div>
   </div>
 
-  <script>
+  <!-- Add User Form -->
+  <div id="userForm">
+    <h2>Add a User</h2>
+    <label>Email:</label>
+    <input type="email" id="emailInput" placeholder="Enter email" required /><br /><br />
+    <label>Password:</label>
+    <input type="password" id="passwordInput" placeholder="Enter password" required /><br /><br />
+    <label>Role:</label>
+    <input type="text" id="roleInput" placeholder="Enter role (admin, guest, premium)" required /><br /><br />
+    <button id="addUserButton">Add User</button>
+    <div id="resultMessage" style="margin-top: 10px; font-weight: bold;"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co"; // Replace with your Supabase URL
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Replace with your Supabase key
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const welcomeScreen = document.getElementById('welcomeScreen');
     const firstTimeButton = document.getElementById('firstTime');
     const returningButton = document.getElementById('returningGuest');
@@ -144,94 +169,49 @@
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
+    const userForm = document.getElementById('userForm');
+    const addUserButton = document.getElementById('addUserButton');
 
     let recognition;
     let userName = null;
 
-    // Initialize Voice Recognition
-    function startVoiceRecognition() {
-      if (!recognition) {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
+    // Voice Recognition
+    function startVoiceRecognition() { ... }
 
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          chatInput.value = transcript;
-          handleChatLogic(transcript);
-        };
-
-        recognition.onerror = (event) => {
-          alert("Error: Microphone not accessible.");
-        };
-      }
-      recognition.start();
-    }
-
-    // Speak Text Using Speech Synthesis
-    function speakText(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.lang = 'en-US';
-      speech.pitch = 1;
-      speech.rate = 1;
-      speech.volume = 1;
-      window.speechSynthesis.speak(speech);
-    }
+    // Speak Text
+    function speakText(text) { ... }
 
     // Show Chat Screen for First-Time Guest
     firstTimeButton.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
-
-      const introMessage = "Hi there! I’m your Salon Skin Assistant, here to help with all things beauty and skincare. What’s your name, beautiful?";
-      addMessage("Assistant", introMessage);
-      speakText(introMessage);
     });
 
-    // Returning Guest Placeholder
+    // Show User Form (temporary functionality)
     returningButton.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
-      chatScreen.style.display = 'block';
-      const returningMessage = "Welcome back! Please log in to continue your beauty journey.";
-      addMessage("Assistant", returningMessage);
-      speakText(returningMessage);
+      userForm.style.display = 'block';
     });
 
-    // Handle Sending Messages
-    sendButton.addEventListener('click', () => {
-      const userMessage = chatInput.value.trim();
-      if (!userMessage) return;
+    // Add User Button Logic
+    addUserButton.addEventListener('click', async () => {
+      const email = document.getElementById("emailInput").value.trim();
+      const password = document.getElementById("passwordInput").value.trim();
+      const role = document.getElementById("roleInput").value.trim();
 
-      addMessage("You", userMessage);
-      handleChatLogic(userMessage);
-      chatInput.value = '';
-    });
-
-    // Voice Button Event Listener
-    voiceButton.addEventListener('click', () => {
-      startVoiceRecognition();
-    });
-
-    // Add Messages to Chat Output
-    function addMessage(sender, message) {
-      const messageElement = document.createElement('div');
-      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatOutput.appendChild(messageElement);
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    }
-
-    // Chat Logic
-    function handleChatLogic(userMessage) {
-      if (!userName) {
-        userName = userMessage;
-        const playfulQuestion = `Nice to meet you, ${userName}! Quick question—if you could have perfect skin instantly, would you pick a glowing complexion or no pores at all?`;
-        addMessage("Assistant", playfulQuestion);
-        speakText(playfulQuestion);
-      } else {
-        const followUpMessage = `Thanks for sharing, ${userName}! Could you provide your email to personalize my recommendations?`;
-        addMessage("Assistant", followUpMessage);
-        speakText(followUpMessage);
+      if (!email || !password || !role) {
+        document.getElementById("resultMessage").innerText = "All fields are required!";
+        return;
       }
-    }
+
+      const { data, error } = await supabase.from("auth_table").insert([{ email, password, role }]);
+
+      if (error) {
+        document.getElementById("resultMessage").innerText = `Error: ${error.message}`;
+      } else {
+        document.getElementById("resultMessage").innerText = "User added successfully!";
+      }
+    });
   </script>
 </body>
 </html>
