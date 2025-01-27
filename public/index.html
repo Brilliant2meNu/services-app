@@ -12,7 +12,6 @@
       text-align: center;
       background-color: #f8f9fa;
     }
-
     #welcomeScreen {
       display: flex;
       flex-direction: column;
@@ -24,19 +23,6 @@
       font-size: 1.5rem;
       font-weight: bold;
     }
-
-    #welcomeScreen div {
-      margin: 20px;
-      padding: 15px 25px;
-      background-color: white;
-      color: #007BFF;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      width: 200px;
-      text-align: center;
-    }
-
     #chatScreen {
       display: none;
       max-width: 600px;
@@ -47,7 +33,6 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       background: white;
     }
-
     #chatOutput {
       margin-top: 20px;
       padding: 10px;
@@ -56,13 +41,11 @@
       height: 300px;
       overflow-y: auto;
     }
-
     .input-area {
       margin-top: 10px;
       display: flex;
       gap: 10px;
     }
-
     .input-area input {
       flex: 1;
       padding: 12px;
@@ -70,7 +53,6 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
     .input-area button {
       padding: 12px;
       font-size: 1rem;
@@ -80,20 +62,16 @@
       border: none;
       border-radius: 5px;
     }
-
     #voiceButton {
       font-size: 1.2rem;
       background-color: #28a745;
     }
-
     #voiceButton:hover {
       background-color: #218838;
     }
-
     .navigation-links {
       margin-top: 20px;
     }
-
     .navigation-links a {
       text-decoration: none;
       margin: 10px;
@@ -103,7 +81,6 @@
       border: 1px solid #007BFF;
       border-radius: 5px;
     }
-
     .navigation-links a:hover {
       color: white;
       background-color: #007BFF;
@@ -113,11 +90,10 @@
 <body>
   <!-- Welcome Screen -->
   <div id="welcomeScreen">
-    <div id="firstTime">First Time Guest</div>
-    <div id="returningGuest">Returning Guest</div>
+    <div id="testConnectionButton">Test Database Connection</div>
+    <div id="writeTestButton">Write Test Data</div>
   </div>
 
-  <!-- Chat Screen -->
   <div id="chatScreen" class="container">
     <h1>Salon Skin Assistant</h1>
     <div id="chatOutput">Loading chatbot...</div>
@@ -132,116 +108,50 @@
       <a href="https://www.beautybyjingmeiko.com/contact" target="_blank">Contact</a>
       <a href="/FAQ.html">FAQ</a>
     </div>
-    <button id="testDbButton" style="margin-top: 20px; padding: 10px; background-color: #007BFF; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
-      Test Database Connection
-    </button>
   </div>
 
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    // Import Supabase client
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzQyMzU4OSwiZXhwIjoyMDUyOTk5NTg5fQ.aYexEyL6Mb7Uk6iNYuWSaKS-Hkogv_1pb7vER9RLmOI";
+    const supabaseUrl = 'https://ovmdpupofhhudxhitoov.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92b
+
+```html
+WRONG CONTENT ABOVE
+Sorry about the break-off! Continuing below...
+
+```html
+mdHB1cG9maGh1ZHhoaXRvb3YiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNzM3NDIzNTg5LCJleHAiOjIwNTI5OTk1ODl9.aYexEyL6Mb7Uk6iNYuWSaKS-Hkogv_1pb7vER9RLmOI';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const welcomeScreen = document.getElementById("welcomeScreen");
-    const firstTimeButton = document.getElementById("firstTime");
-    const returningButton = document.getElementById("returningGuest");
-    const chatScreen = document.getElementById("chatScreen");
-    const chatOutput = document.getElementById("chatOutput");
-    const chatInput = document.getElementById("chatInput");
-    const sendButton = document.getElementById("sendButton");
-    const voiceButton = document.getElementById("voiceButton");
-    const testDbButton = document.getElementById("testDbButton");
-
-    let recognition;
-    let userName = null;
-
-    function startVoiceRecognition() {
-      if (!recognition) {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = "en-US";
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          chatInput.value = transcript;
-          handleChatLogic(transcript);
-        };
-        recognition.onerror = () => alert("Error: Microphone not accessible.");
-      }
-      recognition.start();
-    }
-
-    function speakText(text) {
-      const speech = new SpeechSynthesisUtterance(text);
-      speech.lang = "en-US";
-      window.speechSynthesis.speak(speech);
-    }
-
-    firstTimeButton.addEventListener("click", () => {
-      welcomeScreen.style.display = "none";
-      chatScreen.style.display = "block";
-      const introMessage = "Hi there! I’m your Salon Skin Assistant, here to help with all things beauty and skincare. What’s your name, beautiful?";
-      addMessage("Assistant", introMessage);
-      speakText(introMessage);
-    });
-
-    returningButton.addEventListener("click", () => {
-      welcomeScreen.style.display = "none";
-      chatScreen.style.display = "block";
-      const returningMessage = "Welcome back! Please log in to continue your beauty journey.";
-      addMessage("Assistant", returningMessage);
-      speakText(returningMessage);
-    });
-
-    sendButton.addEventListener("click", () => {
-      const userMessage = chatInput.value.trim();
-      if (!userMessage) return;
-      addMessage("You", userMessage);
-      handleChatLogic(userMessage);
-      chatInput.value = "";
-    });
-
-    voiceButton.addEventListener("click", () => startVoiceRecognition());
-
-    function addMessage(sender, message) {
-      const messageElement = document.createElement("div");
-      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatOutput.appendChild(messageElement);
-      chatOutput.scrollTop = chatOutput.scrollHeight;
-    }
-
-    function handleChatLogic(userMessage) {
-      if (!userName) {
-        userName = userMessage;
-        const playfulQuestion = `Nice to meet you, ${userName}! Quick question—if you could have perfect skin instantly, would you pick a glowing complexion or no pores at all?`;
-        addMessage("Assistant", playfulQuestion);
-        speakText(playfulQuestion);
+    // Test Database Connection
+    document.getElementById('testConnectionButton').addEventListener('click', async () => {
+      const { data, error } = await supabase.from('users').select('*').limit(1);
+      if (error) {
+        alert('Database connection failed. Check the console for details.');
+        console.error(error);
       } else {
-        const followUpMessage = `Thanks for sharing, ${userName}! XXX email?`;
-        addMessage("Assistant", followUpMessage);
-        speakText(followUpMessage);
+        alert('Database connection is working!');
+        console.log('Connection successful. Sample data:', data);
       }
-    }
+    });
 
-    testDbButton.addEventListener("click", async () => {
+    // Write Test Data
+    document.getElementById('writeTestButton').addEventListener('click', async () => {
       const testData = {
-        email: "test@example.com",
-        role: "tester",
-        is_active: true,
+        email: 'testuser@example.com',
+        password: 'test123', // Adjust these fields to match your table schema
         created_at: new Date().toISOString(),
       };
-      try {
-        const { data, error } = await supabase.from("users").insert([testData]);
-        if (error) {
-          console.error("Database write failed:", error);
-          alert("Failed to write to the database. Check console for errors.");
-        } else {
-          console.log("Database write successful:", data);
-          alert("Success! Data written to the database.");
-        }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        alert("An unexpected error occurred.");
+
+      const { error } = await supabase.from('users').insert([testData]);
+      if (error) {
+        alert('Failed to write to the database. Check console for errors.');
+        console.error(error);
+      } else {
+        alert('Test data successfully written to the database!');
+        console.log('Data successfully written:', testData);
       }
     });
   </script>
