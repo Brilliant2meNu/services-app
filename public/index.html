@@ -7,20 +7,10 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
+      margin: 0;
       padding: 0;
       text-align: center;
       background-color: #f8f9fa;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: left;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      background: white;
     }
 
     #welcomeScreen {
@@ -29,17 +19,33 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      font-size: 1.5rem;
-      font-weight: bold;
       background-color: #007BFF;
       color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    #welcomeScreen div {
+      margin: 20px;
+      padding: 15px 25px;
+      background-color: white;
+      color: #007BFF;
+      border-radius: 5px;
       cursor: pointer;
-      padding: 20px;
+      font-size: 1.2rem;
+      width: 200px;
       text-align: center;
     }
 
     #chatScreen {
       display: none;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
     }
 
     #chatOutput {
@@ -54,7 +60,6 @@
     .input-area {
       margin-top: 10px;
       display: flex;
-      flex-wrap: wrap;
       gap: 10px;
     }
 
@@ -74,157 +79,104 @@
       color: white;
       border: none;
       border-radius: 5px;
-      flex: none;
     }
 
-    .input-area button:hover {
-      background-color: #0056b3;
+    .navigation-links {
+      margin-top: 20px;
     }
 
-    #passwordModal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      width: 300px;
-      text-align: center;
-    }
-
-    #passwordModal h2 {
-      font-size: 1.5rem;
-      margin-bottom: 15px;
-    }
-
-    #passwordModal input {
-      width: calc(100% - 20px);
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
+    .navigation-links a {
+      text-decoration: none;
+      margin: 10px;
+      font-size: 1rem;
+      color: #007BFF;
+      padding: 8px 12px;
+      border: 1px solid #007BFF;
       border-radius: 5px;
     }
 
-    #passwordModal button {
-      padding: 10px 15px;
-      background-color: #007BFF;
+    .navigation-links a:hover {
       color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-
-    #passwordModal button:hover {
-      background-color: #0056b3;
+      background-color: #007BFF;
     }
   </style>
 </head>
 <body>
-  <div id="welcomeScreen">WELCOME! Tap on your screen to begin!</div>
+  <!-- Welcome Screen -->
+  <div id="welcomeScreen">
+    <div id="firstTime">First Time Guest</div>
+    <div id="returningGuest">Returning Guest</div>
+  </div>
 
+  <!-- Chat Screen -->
   <div id="chatScreen" class="container">
     <h1>Salon Skin Assistant</h1>
-    <div id="chatOutput"></div>
+    <div id="chatOutput">Loading chatbot...</div>
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
     </div>
     <div class="navigation-links">
       <a href="/login.html">Log In / Register</a>
-      <a href="https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services" target="_blank">Book Now</a>
+      <a href="https://book.squareup.com/appointments/" target="_blank">Book Now</a>
       <a href="https://www.beautybyjingmeiko.com/contact" target="_blank">Contact</a>
       <a href="/FAQ.html">FAQ</a>
     </div>
   </div>
 
-  <!-- Password Modal -->
-  <div id="passwordModal">
-    <h2>Create Your Password</h2>
-    <input type="password" id="newPassword" placeholder="New Password">
-    <input type="password" id="confirmPassword" placeholder="Confirm Password">
-    <button id="savePassword">Finish</button>
-    <button id="cancelPassword">Cancel</button>
-  </div>
-
   <script>
     const welcomeScreen = document.getElementById('welcomeScreen');
+    const firstTimeButton = document.getElementById('firstTime');
+    const returningButton = document.getElementById('returningGuest');
     const chatScreen = document.getElementById('chatScreen');
     const chatOutput = document.getElementById('chatOutput');
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
-    const passwordModal = document.getElementById('passwordModal');
-    const savePasswordButton = document.getElementById('savePassword');
-    const cancelPasswordButton = document.getElementById('cancelPassword');
 
-    let capturedEmail = null; // To store email captured during chat
-    let step = 1; // Interaction step
-    let userName = ""; // Captured user name
+    let userName = null;
 
-    // Start Chat
-    welcomeScreen.addEventListener('click', () => {
+    // Show Chat Screen for First-Time Guest
+    firstTimeButton.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
-      addMessage("Assistant", "Hi there! I’m your Salon Skin Assistant, here to help with all things beauty and skincare. What’s your name?");
+
+      // First Message: Introduction
+      addMessage("Assistant", "Hi there! I’m your Salon Skin Assistant, here to help with all things beauty and skincare. What’s your name, beautiful?");
     });
 
+    // Returning Guest (Placeholder)
+    returningButton.addEventListener('click', () => {
+      welcomeScreen.style.display = 'none';
+      chatScreen.style.display = 'block';
+      addMessage("Assistant", "Welcome back! Please log in to continue your beauty journey.");
+    });
+
+    // Handle Sending Messages
     sendButton.addEventListener('click', () => {
       const userMessage = chatInput.value.trim();
-      if (!userMessage) {
-        alert("Please enter a message!");
-        return;
-      }
+      if (!userMessage) return;
 
-      chatInput.value = ""; // Clear input field
       addMessage("You", userMessage);
-
-      if (step === 1) {
-        userName = userMessage;
-        addMessage("Assistant", `Nice to meet you, ${userName}! Quick question—if you could have perfect skin instantly, would you pick a glowing complexion or no pores at all?`);
-        step++;
-      } else if (step === 2) {
-        addMessage("Assistant", `Thanks for sharing, ${userName}! To personalize my recommendations, could you share your email?`);
-        step++;
-      } else if (step === 3) {
-        capturedEmail = userMessage;
-        addMessage("Assistant", "Thanks! Now let's set up your password so you can log in anytime.");
-        showPasswordModal();
-      }
+      handleChatLogic(userMessage);
+      chatInput.value = '';
     });
 
-    // Show Password Modal
-    function showPasswordModal() {
-      passwordModal.style.display = 'block';
-    }
-
-    // Save Password
-    savePasswordButton.addEventListener('click', () => {
-      const newPassword = document.getElementById('newPassword').value.trim();
-      const confirmPassword = document.getElementById('confirmPassword').value.trim();
-
-      if (newPassword && confirmPassword && newPassword === confirmPassword) {
-        console.log(`Saving password for email: ${capturedEmail}`);
-        passwordModal.style.display = 'none';
-        addMessage("Assistant", "Your password has been set! You can now log in anytime.");
-      } else {
-        alert("Passwords do not match. Please try again.");
-      }
-    });
-
-    // Cancel Password Creation
-    cancelPasswordButton.addEventListener('click', () => {
-      passwordModal.style.display = 'none';
-    });
-
-    // Add Chat Messages
+    // Add Messages to Chat Output
     function addMessage(sender, message) {
       const messageElement = document.createElement('div');
       messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
       chatOutput.appendChild(messageElement);
       chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll
+    }
+
+    // Chat Logic
+    function handleChatLogic(userMessage) {
+      if (!userName) {
+        userName = userMessage;
+        addMessage("Assistant", `Nice to meet you, ${userName}! Quick question—if you could have perfect skin instantly, would you pick a glowing complexion or no pores at all?`);
+      } else {
+        addMessage("Assistant", `Thanks for sharing, ${userName}! XXX email?`);
+      }
     }
   </script>
 </body>
