@@ -180,16 +180,13 @@
   <div id="chatScreen" class="container">
     <h1>Chatbot</h1>
     <div id="permissionMessage">Please enable microphone and speech permissions for full functionality.</div>
-    <div id="chatOutput">Loading chatbot...</div>
+    <div id="chatOutput">
+      <div><strong>Assistant:</strong> Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. To get started, please log into your account if you're an existing client, or <a href="#" id="openModalLink" style="font-weight: bold;">tap here to provide your first name and email</a> so we can assist you better.</div>
+    </div>
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
       <button id="voiceButton">🎤</button>
-    </div>
-
-    <div id="chatGreeting">
-      <strong>Assistant:</strong> Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. To get started, please log into your account if you're an existing client, or 
-      <a id="openModalLink" href="#" style="font-weight: bold;">tap here to provide your first name and email</a> so we can assist you better.
     </div>
   </div>
 
