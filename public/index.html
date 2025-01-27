@@ -107,7 +107,7 @@
       background-color: #007BFF;
     }
 
-    #infoModal {
+    #passwordModal {
       display: none;
       position: fixed;
       top: 50%;
@@ -121,12 +121,12 @@
       text-align: center;
     }
 
-    #infoModal h2 {
+    #passwordModal h2 {
       font-size: 1.5rem;
       margin-bottom: 15px;
     }
 
-    #infoModal input {
+    #passwordModal input {
       width: calc(100% - 20px);
       padding: 10px;
       margin-bottom: 15px;
@@ -134,7 +134,7 @@
       border-radius: 5px;
     }
 
-    #infoModal button {
+    #passwordModal button {
       padding: 10px 15px;
       background-color: #007BFF;
       color: white;
@@ -144,7 +144,7 @@
       margin-right: 10px;
     }
 
-    #infoModal button:hover {
+    #passwordModal button:hover {
       background-color: #0056b3;
     }
   </style>
@@ -155,7 +155,7 @@
   <div id="chatScreen" class="container">
     <h1>Chatbot</h1>
     <div id="permissionMessage">Please enable microphone and speech permissions for full functionality.</div>
-    <div id="chatOutput"></div>
+    <div id="chatOutput">Loading chatbot...</div>
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
@@ -169,13 +169,13 @@
     </div>
   </div>
 
-  <!-- Modal -->
-  <div id="infoModal">
-    <h2>Enter Your Information</h2>
-    <input type="text" id="firstName" placeholder="First Name">
-    <input type="email" id="emailAddress" placeholder="Email Address">
-    <button id="submitInfo">Submit</button>
-    <button id="closeModal">Back</button>
+  <!-- Password Modal -->
+  <div id="passwordModal">
+    <h2>Create Your Password</h2>
+    <input type="password" id="newPassword" placeholder="New Password">
+    <input type="password" id="confirmPassword" placeholder="Confirm Password">
+    <button id="savePassword">Finish</button>
+    <button id="cancelPassword">Cancel</button>
   </div>
 
   <script>
@@ -185,78 +185,58 @@
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
     const voiceButton = document.getElementById('voiceButton');
-    const infoModal = document.getElementById('infoModal');
-    const submitInfoButton = document.getElementById('submitInfo');
-    const closeModalButton = document.getElementById('closeModal');
+    const passwordModal = document.getElementById('passwordModal');
+    const savePasswordButton = document.getElementById('savePassword');
+    const cancelPasswordButton = document.getElementById('cancelPassword');
 
-    let recognition;
+    let capturedEmail = null; // To store email captured during chat
 
+    // Start Chat
     welcomeScreen.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
 
-      addMessage("Assistant", "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs.");
-      setTimeout(() => {
-        addMessage("Assistant", 'To get started, please log into your account if you\'re an existing client, or <a href="#" id="openModalLink" style="font-weight: bold;">tap here to provide your first name and email</a> if you’re a new guest.');
-      }, 1000);
+      addMessage("Assistant", "Hello! Welcome to our salon assistant. What's your name?");
     });
 
-    document.body.addEventListener('click', (e) => {
-      if (e.target.id === 'openModalLink') {
-        e.preventDefault();
-        infoModal.style.display = 'block';
-      }
-    });
-
-    closeModalButton.addEventListener('click', () => {
-      infoModal.style.display = 'none';
-    });
-
-    submitInfoButton.addEventListener('click', () => {
-      const firstName = document.getElementById('firstName').value.trim();
-      const emailAddress = document.getElementById('emailAddress').value.trim();
-
-      if (firstName && emailAddress) {
-        addMessage("Assistant", `Thank you, ${firstName}! Your email has been registered.`);
-        infoModal.style.display = 'none';
-      } else {
-        alert('Please fill out both fields!');
-      }
-    });
-
-    sendButton.addEventListener('click', async () => {
-      const userMessage = chatInput.value.trim();
-      if (!userMessage) return;
-      addMessage("You", userMessage);
-
-      const botResponse = await fetchBackendGPTResponse(userMessage);
-      addMessage("Assistant", botResponse);
-      chatInput.value = '';
-    });
-
-    function addMessage(sender, message) {
-      const div = document.createElement('div');
-      div.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatOutput.appendChild(div);
-      chatOutput.scrollTop = chatOutput.scrollHeight;
+    // Capture email in chat
+    async function saveEmailToDatabase(email) {
+      capturedEmail = email; // Store email locally
+      // Simulate saving to Supabase
+      console.log(`Saving email: ${email}`);
     }
 
-    async function fetchBackendGPTResponse(message) {
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message }),
-        });
+    // Show Password Modal
+    function showPasswordModal() {
+      passwordModal.style.display = 'block';
+    }
 
-        if (!response.ok) throw new Error('Error fetching response');
+    // Save Password
+    savePasswordButton.addEventListener('click', async () => {
+      const newPassword = document.getElementById('newPassword').value.trim();
+      const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
-        const data = await response.json();
-        return data.reply;
-      } catch (error) {
-        console.error(error);
-        return "Sorry, something went wrong.";
+      if (newPassword && confirmPassword && newPassword === confirmPassword) {
+        // Simulate saving password to Supabase linked to capturedEmail
+        console.log(`Saving password for email: ${capturedEmail}`);
+        passwordModal.style.display = 'none';
+        addMessage("Assistant", "Your password has been set! You can now log in.");
+      } else {
+        alert("Passwords do not match. Please try again.");
       }
+    });
+
+    // Cancel Password Creation
+    cancelPasswordButton.addEventListener('click', () => {
+      passwordModal.style.display = 'none';
+    });
+
+    // Add Chat Messages
+    function addMessage(sender, message) {
+      const messageElement = document.createElement('div');
+      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatOutput.appendChild(messageElement);
+      chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll
     }
   </script>
 </body>
