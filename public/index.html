@@ -155,13 +155,17 @@
   <div id="chatScreen" class="container">
     <h1>Chatbot</h1>
     <div id="permissionMessage">Please enable microphone and speech permissions for full functionality.</div>
-    <div id="chatOutput">
-      <div><strong>Assistant:</strong> Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. To get started, please log into your account if you're an existing client, or <a href="#" id="openModalLink" style="font-weight: bold;">tap here to provide your first name and email</a> so we can assist you better.</div>
-    </div>
+    <div id="chatOutput">Loading chatbot...</div>
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
       <button id="voiceButton">🎤</button>
+    </div>
+    <div class="navigation-links">
+      <a href="/login.html">Log In / Register</a>
+      <a href="https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services?buttonTextColor=ffffff&category_id=MJNRZ4AEDUMOPJ7YUJ2FZIRT&color=000000&locale=en&referrer=so" target="_blank">Book Now</a>
+      <a href="https://www.beautybyjingmeiko.com/contact" target="_blank">Contact</a>
+      <a href="/FAQ.html">FAQ</a>
     </div>
   </div>
 
@@ -208,7 +212,6 @@
       if (firstName && emailAddress) {
         chatOutput.innerHTML += `<div><strong>Assistant:</strong> Thank you, ${firstName}! Your email has been registered.</div>`;
         infoModal.style.display = 'none';
-        // Add logic here to save the email to the backend.
       } else {
         alert('Please fill out both fields!');
       }
@@ -223,7 +226,7 @@
         recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           chatInput.value = transcript;
-          handleSendMessage(transcript); // Automatically send the transcribed message
+          handleSendMessage(transcript);
         };
 
         recognition.onerror = (event) => {
@@ -281,7 +284,7 @@
       const messageElement = document.createElement('div');
       messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
       chatOutput.appendChild(messageElement);
-      chatOutput.scrollTop = chatOutput.scrollHeight; // Auto-scroll
+      chatOutput.scrollTop = chatOutput.scrollHeight;
     }
 
     // Start Chat
@@ -289,10 +292,10 @@
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
 
-      fetchBackendGPTResponse("Hello").then((response) => {
-        addMessage("Assistant", response);
-        speakText(response);
-      });
+      addMessage("Assistant", "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs.");
+      setTimeout(() => {
+        addMessage("Assistant", 'To get started, please log into your account if you\'re an existing client, or <a href="#" id="openModalLink" style="font-weight: bold;">tap here to provide your first name and email</a> if you’re a new guest.');
+      }, 1000);
     });
 
     // Voice Button Event Listener
