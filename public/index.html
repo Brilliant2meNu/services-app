@@ -81,15 +81,6 @@
       border-radius: 5px;
     }
 
-    #voiceButton {
-      font-size: 1.2rem;
-      background-color: #28a745;
-    }
-
-    #voiceButton:hover {
-      background-color: #218838;
-    }
-
     #userForm {
       display: none;
       margin-top: 20px;
@@ -119,7 +110,6 @@
 <body>
   <!-- Welcome Screen -->
   <div id="welcomeScreen">
-    <h2>These section buttons are functional now!</h2>
     <div id="firstTime">First Time Guest</div>
     <div id="returningGuest">Returning Guest</div>
   </div>
@@ -131,13 +121,6 @@
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
-      <button id="voiceButton">🎤</button>
-    </div>
-    <div class="navigation-links">
-      <a href="/login.html">Log In / Register</a>
-      <a href="https://book.squareup.com/appointments/" target="_blank">Book Now</a>
-      <a href="https://www.beautybyjingmeiko.com/contact" target="_blank">Contact</a>
-      <a href="/FAQ.html">FAQ</a>
     </div>
   </div>
 
@@ -161,40 +144,27 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Replace with your Supabase key
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const welcomeScreen = document.getElementById('welcomeScreen');
-    const firstTimeButton = document.getElementById('firstTime');
-    const returningButton = document.getElementById('returningGuest');
-    const chatScreen = document.getElementById('chatScreen');
-    const chatOutput = document.getElementById('chatOutput');
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const voiceButton = document.getElementById('voiceButton');
-    const userForm = document.getElementById('userForm');
-    const addUserButton = document.getElementById('addUserButton');
-
-    let recognition;
-    let userName = null;
-
-    // Voice Recognition
-    function startVoiceRecognition() { ... }
-
-    // Speak Text
-    function speakText(text) { ... }
+    const welcomeScreen = document.getElementById("welcomeScreen");
+    const firstTimeButton = document.getElementById("firstTime");
+    const returningButton = document.getElementById("returningGuest");
+    const chatScreen = document.getElementById("chatScreen");
+    const userForm = document.getElementById("userForm");
+    const addUserButton = document.getElementById("addUserButton");
 
     // Show Chat Screen for First-Time Guest
-    firstTimeButton.addEventListener('click', () => {
-      welcomeScreen.style.display = 'none';
-      chatScreen.style.display = 'block';
+    firstTimeButton.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      chatScreen.style.display = "block";
     });
 
-    // Show User Form (temporary functionality)
-    returningButton.addEventListener('click', () => {
-      welcomeScreen.style.display = 'none';
-      userForm.style.display = 'block';
+    // Show User Form for Returning Guest
+    returningButton.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      userForm.style.display = "block";
     });
 
     // Add User Button Logic
-    addUserButton.addEventListener('click', async () => {
+    addUserButton.addEventListener("click", async () => {
       const email = document.getElementById("emailInput").value.trim();
       const password = document.getElementById("passwordInput").value.trim();
       const role = document.getElementById("roleInput").value.trim();
