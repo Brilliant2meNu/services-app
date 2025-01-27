@@ -25,161 +25,115 @@
       font-weight: bold;
     }
 
-    #welcomeScreen div {
-      margin: 20px;
-      padding: 15px 25px;
-      background-color: white;
-      color: #007BFF;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      width: 200px;
-      text-align: center;
-    }
-
-    #chatScreen {
+    #userForm {
       display: none;
       max-width: 600px;
-      margin: 0 auto;
-      text-align: left;
+      margin: 20px auto;
       padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       background: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      text-align: left;
     }
 
-    #chatOutput {
-      margin-top: 20px;
+    #userForm input {
+      width: calc(100% - 20px);
       padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      height: 300px;
-      overflow-y: auto;
-    }
-
-    .input-area {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-    }
-
-    .input-area input {
-      flex: 1;
-      padding: 12px;
-      font-size: 1rem;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
 
-    .input-area button {
-      padding: 12px;
-      font-size: 1rem;
-      cursor: pointer;
+    #userForm button {
+      padding: 10px 20px;
       background-color: #007BFF;
       color: white;
       border: none;
       border-radius: 5px;
+      cursor: pointer;
     }
 
-    #userForm {
-      display: none;
+    #userForm button:hover {
+      background-color: #0056b3;
+    }
+
+    #resultMessage {
       margin-top: 20px;
-      text-align: center;
-    }
-
-    .navigation-links {
-      margin-top: 20px;
-    }
-
-    .navigation-links a {
-      text-decoration: none;
-      margin: 10px;
       font-size: 1rem;
-      color: #007BFF;
-      padding: 8px 12px;
-      border: 1px solid #007BFF;
-      border-radius: 5px;
-    }
-
-    .navigation-links a:hover {
-      color: white;
-      background-color: #007BFF;
+      color: #ff0000;
     }
   </style>
 </head>
 <body>
   <!-- Welcome Screen -->
   <div id="welcomeScreen">
-    <div id="firstTime">First Time Guest</div>
-    <div id="returningGuest">Returning Guest</div>
-  </div>
-
-  <!-- Chat Screen -->
-  <div id="chatScreen" class="container">
-    <h1>Salon Skin Assistant</h1>
-    <div id="chatOutput">Loading chatbot...</div>
-    <div class="input-area">
-      <input type="text" id="chatInput" placeholder="Type your message here">
-      <button id="sendButton">Send</button>
-    </div>
-  </div>
-
-  <!-- Add User Form -->
-  <div id="userForm">
-    <h2>Add a User</h2>
-    <label>Email:</label>
-    <input type="email" id="emailInput" placeholder="Enter email" required /><br /><br />
-    <label>Password:</label>
-    <input type="password" id="passwordInput" placeholder="Enter password" required /><br /><br />
-    <label>Role:</label>
-    <input type="text" id="roleInput" placeholder="Enter role (admin, guest, premium)" required /><br /><br />
+    <h2>Add User to the Database</h2>
     <button id="addUserButton">Add User</button>
-    <div id="resultMessage" style="margin-top: 10px; font-weight: bold;"></div>
+  </div>
+
+  <!-- User Form -->
+  <div id="userForm">
+    <h2>Add a New User</h2>
+    <label for="email">Email:</label>
+    <input type="email" id="email" placeholder="Enter email" required>
+    <label for="password">Password:</label>
+    <input type="password" id="password" placeholder="Enter password" required>
+    <label for="role">Role (admin, guest, premium):</label>
+    <input type="text" id="role" placeholder="Enter role (admin, guest, premium)" required>
+    <button id="submitUser">Submit</button>
+    <button id="cancelForm">Cancel</button>
+    <div id="resultMessage"></div>
   </div>
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-    const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co"; // Replace with your Supabase URL
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // Replace with your Supabase key
+    const supabaseUrl = "https://ovmdpupofhhudxhitoov.supabase.co";
+    const supabaseKey = "YOUR_SERVICE_KEY_HERE"; // Replace with your actual key
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const welcomeScreen = document.getElementById("welcomeScreen");
-    const firstTimeButton = document.getElementById("firstTime");
-    const returningButton = document.getElementById("returningGuest");
-    const chatScreen = document.getElementById("chatScreen");
     const userForm = document.getElementById("userForm");
     const addUserButton = document.getElementById("addUserButton");
+    const submitUser = document.getElementById("submitUser");
+    const cancelForm = document.getElementById("cancelForm");
+    const resultMessage = document.getElementById("resultMessage");
 
-    // Show Chat Screen for First-Time Guest
-    firstTimeButton.addEventListener("click", () => {
-      welcomeScreen.style.display = "none";
-      chatScreen.style.display = "block";
-    });
-
-    // Show User Form for Returning Guest
-    returningButton.addEventListener("click", () => {
+    addUserButton.addEventListener("click", () => {
       welcomeScreen.style.display = "none";
       userForm.style.display = "block";
     });
 
-    // Add User Button Logic
-    addUserButton.addEventListener("click", async () => {
-      const email = document.getElementById("emailInput").value.trim();
-      const password = document.getElementById("passwordInput").value.trim();
-      const role = document.getElementById("roleInput").value.trim();
+    cancelForm.addEventListener("click", () => {
+      userForm.style.display = "none";
+      welcomeScreen.style.display = "flex";
+    });
 
-      if (!email || !password || !role) {
-        document.getElementById("resultMessage").innerText = "All fields are required!";
+    submitUser.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value.trim().toLowerCase();
+
+      const validRoles = ["admin", "guest", "premium"];
+      if (!validRoles.includes(role)) {
+        resultMessage.innerText = "Invalid role! Please enter one of: admin, guest, premium.";
         return;
       }
 
-      const { data, error } = await supabase.from("auth_table").insert([{ email, password, role }]);
+      const { data, error } = await supabase
+        .from("auth_table")
+        .insert([{ email, password, role }]);
 
       if (error) {
-        document.getElementById("resultMessage").innerText = `Error: ${error.message}`;
+        console.error("Database Write Error:", error);
+        resultMessage.innerText = `Error: ${error.message}`;
       } else {
-        document.getElementById("resultMessage").innerText = "User added successfully!";
+        console.log("Database Write Success:", data);
+        resultMessage.innerText = "User added successfully!";
+        setTimeout(() => {
+          userForm.style.display = "none";
+          welcomeScreen.style.display = "flex";
+          resultMessage.innerText = "";
+        }, 2000);
       }
     });
   </script>
