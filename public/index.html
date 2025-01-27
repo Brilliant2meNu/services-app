@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot</title>
+  <title>Salon Skin Assistant</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -81,32 +81,6 @@
       background-color: #0056b3;
     }
 
-    #permissionMessage {
-      color: red;
-      font-size: 0.9rem;
-      display: none;
-    }
-
-    .navigation-links {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .navigation-links a {
-      text-decoration: none;
-      margin: 10px;
-      font-size: 1.2rem;
-      color: #007BFF;
-      border: 1px solid #007BFF;
-      padding: 10px 15px;
-      border-radius: 5px;
-    }
-
-    .navigation-links a:hover {
-      color: #fff;
-      background-color: #007BFF;
-    }
-
     #passwordModal {
       display: none;
       position: fixed;
@@ -153,17 +127,15 @@
   <div id="welcomeScreen">WELCOME! Tap on your screen to begin!</div>
 
   <div id="chatScreen" class="container">
-    <h1>Chatbot</h1>
-    <div id="permissionMessage">Please enable microphone and speech permissions for full functionality.</div>
-    <div id="chatOutput">Loading chatbot...</div>
+    <h1>Salon Skin Assistant</h1>
+    <div id="chatOutput"></div>
     <div class="input-area">
       <input type="text" id="chatInput" placeholder="Type your message here">
       <button id="sendButton">Send</button>
-      <button id="voiceButton">🎤</button>
     </div>
     <div class="navigation-links">
       <a href="/login.html">Log In / Register</a>
-      <a href="https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services?buttonTextColor=ffffff&category_id=MJNRZ4AEDUMOPJ7YUJ2FZIRT&color=000000&locale=en&referrer=so" target="_blank">Book Now</a>
+      <a href="https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services" target="_blank">Book Now</a>
       <a href="https://www.beautybyjingmeiko.com/contact" target="_blank">Contact</a>
       <a href="/FAQ.html">FAQ</a>
     </div>
@@ -184,27 +156,44 @@
     const chatOutput = document.getElementById('chatOutput');
     const chatInput = document.getElementById('chatInput');
     const sendButton = document.getElementById('sendButton');
-    const voiceButton = document.getElementById('voiceButton');
     const passwordModal = document.getElementById('passwordModal');
     const savePasswordButton = document.getElementById('savePassword');
     const cancelPasswordButton = document.getElementById('cancelPassword');
 
     let capturedEmail = null; // To store email captured during chat
+    let step = 1; // Interaction step
+    let userName = ""; // Captured user name
 
     // Start Chat
     welcomeScreen.addEventListener('click', () => {
       welcomeScreen.style.display = 'none';
       chatScreen.style.display = 'block';
-
-      addMessage("Assistant", "Hello! Welcome to our salon assistant. What's your name?");
+      addMessage("Assistant", "Hi there! I’m your Salon Skin Assistant, here to help with all things beauty and skincare. What’s your name?");
     });
 
-    // Capture email in chat
-    async function saveEmailToDatabase(email) {
-      capturedEmail = email; // Store email locally
-      // Simulate saving to Supabase
-      console.log(`Saving email: ${email}`);
-    }
+    sendButton.addEventListener('click', () => {
+      const userMessage = chatInput.value.trim();
+      if (!userMessage) {
+        alert("Please enter a message!");
+        return;
+      }
+
+      chatInput.value = ""; // Clear input field
+      addMessage("You", userMessage);
+
+      if (step === 1) {
+        userName = userMessage;
+        addMessage("Assistant", `Nice to meet you, ${userName}! Quick question—if you could have perfect skin instantly, would you pick a glowing complexion or no pores at all?`);
+        step++;
+      } else if (step === 2) {
+        addMessage("Assistant", `Thanks for sharing, ${userName}! To personalize my recommendations, could you share your email?`);
+        step++;
+      } else if (step === 3) {
+        capturedEmail = userMessage;
+        addMessage("Assistant", "Thanks! Now let's set up your password so you can log in anytime.");
+        showPasswordModal();
+      }
+    });
 
     // Show Password Modal
     function showPasswordModal() {
@@ -212,15 +201,14 @@
     }
 
     // Save Password
-    savePasswordButton.addEventListener('click', async () => {
+    savePasswordButton.addEventListener('click', () => {
       const newPassword = document.getElementById('newPassword').value.trim();
       const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
       if (newPassword && confirmPassword && newPassword === confirmPassword) {
-        // Simulate saving password to Supabase linked to capturedEmail
         console.log(`Saving password for email: ${capturedEmail}`);
         passwordModal.style.display = 'none';
-        addMessage("Assistant", "Your password has been set! You can now log in.");
+        addMessage("Assistant", "Your password has been set! You can now log in anytime.");
       } else {
         alert("Passwords do not match. Please try again.");
       }
