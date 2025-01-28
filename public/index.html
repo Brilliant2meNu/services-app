@@ -3,157 +3,219 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Salon Assistant</title>
+  <title>Salon Skin Assistant</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
+      text-align: center;
       background-color: #f8f9fa;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 600px;
       margin: 50px auto;
-      text-align: center;
-    }
-
-    .chat-container {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: white;
+      text-align: left;
       padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
     }
 
-    .button-row {
-      margin-top: 20px;
+    .chatbot {
+      margin-bottom: 20px;
     }
 
-    .button-row button {
-      padding: 10px 20px;
+    .chatbot h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .chatbot textarea {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      resize: none;
+    }
+
+    .chatbot button {
+      padding: 10px 15px;
       margin: 5px;
       font-size: 1rem;
-      border-radius: 5px;
-      border: none;
       cursor: pointer;
+      border: none;
+      border-radius: 5px;
     }
 
-    .button-row button:hover {
-      background: #f1f1f1;
+    .chatbot .login-btn {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    .chatbot .login-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .chatbot .other-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .chatbot .other-btn:hover {
+      background-color: #565e64;
     }
 
     /* Modal Styles */
     .modal {
       display: none;
       position: fixed;
-      top: 0;
+      z-index: 1;
       left: 0;
+      top: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
     }
 
     .modal-content {
-      background: white;
+      background-color: white;
+      margin: 15% auto;
       padding: 20px;
       border-radius: 10px;
-      width: 300px;
-      margin: 100px auto;
-      text-align: left;
-    }
-
-    .modal-content h2 {
-      margin-top: 0;
-    }
-
-    .modal-content input {
-      width: calc(100% - 20px);
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    .modal-content button {
-      padding: 10px 15px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .modal-content button:hover {
-      background-color: #0056b3;
-    }
-
-    .error-message {
-      color: red;
-      margin-top: 10px;
+      width: 90%;
+      max-width: 400px;
     }
 
     .tabs {
       display: flex;
       justify-content: space-around;
       margin-bottom: 15px;
+      border-bottom: 2px solid #ccc;
     }
 
-    .tab {
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+      background-color: white;
+      border: none;
+      border-bottom: 2px solid transparent;
       cursor: pointer;
-      padding: 5px 10px;
-      font-weight: bold;
+    }
+
+    .tabs button.active {
+      border-bottom: 2px solid #007BFF;
       color: #007BFF;
     }
 
-    .tab:hover {
-      text-decoration: underline;
+    .form-group {
+      margin-bottom: 15px;
     }
 
-    .tab.active {
-      text-decoration: underline;
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="chat-container">
+    <!-- Chatbot -->
+    <div class="chatbot">
       <h2>Chatbot</h2>
-      <p><strong>Assistant:</strong> Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs.</p>
-      <textarea rows="5" style="width:100%;"></textarea>
-      <div class="button-row">
-        <button onclick="openModal()">Log In / Register</button>
-        <button>Book Now</button>
-        <button>Contact</button>
-        <button>FAQ</button>
+      <textarea readonly>Assistant: Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs.</textarea>
+      <div>
+        <button class="login-btn" id="openRegisterButton">Log In / Register</button>
+        <button class="other-btn">Book Now</button>
+        <button class="other-btn">Contact</button>
+        <button class="other-btn">FAQ</button>
       </div>
     </div>
   </div>
 
   <!-- Modal -->
-  <div class="modal" id="loginModal">
+  <div id="registerModal" class="modal">
     <div class="modal-content">
       <div class="tabs">
-        <div class="tab active" id="loginTab" onclick="switchTab('login')">Log In</div>
-        <div class="tab" id="registerTab" onclick="switchTab('register')">Register</div>
+        <button class="tab-button active" data-tab="login">Log In</button>
+        <button class="tab-button" data-tab="register">Register</button>
       </div>
-      <div id="loginForm">
+
+      <!-- Login Tab -->
+      <div class="tab-content active" id="login">
         <h2>Log In</h2>
-        <label for="phone_number">Phone Number:</label>
-        <input type="text" id="login_phone_number" placeholder="Enter phone number">
-        <label for="password">Password:</label>
-        <input type="password" id="login_password" placeholder="Enter password">
-        <button onclick="login()">Log In</button>
-        <div class="error-message" id="loginErrorMessage"></div>
+        <div class="form-group">
+          <label for="login_phone_number">Phone Number:</label>
+          <input type="text" id="login_phone_number" placeholder="Enter phone number">
+        </div>
+        <div class="form-group">
+          <label for="login_password">Password:</label>
+          <input type="password" id="login_password" placeholder="Enter password">
+        </div>
+        <button id="loginButton">Log In</button>
+        <div class="error" id="loginError"></div>
       </div>
-      <div id="registerForm" style="display: none;">
+
+      <!-- Register Tab -->
+      <div class="tab-content" id="register">
         <h2>Register</h2>
-        <label for="register_phone_number">Phone Number:</label>
-        <input type="text" id="register_phone_number" placeholder="Enter phone number">
-        <label for="register_password">Password:</label>
-        <input type="password" id="register_password" placeholder="Enter password">
-        <button onclick="register()">Register</button>
-        <div class="error-message" id="registerErrorMessage"></div>
+        <div class="form-group">
+          <label for="phone_number">Phone Number:</label>
+          <input type="text" id="phone_number" placeholder="Enter phone number">
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" placeholder="Enter password">
+        </div>
+        <button id="submitButton">Register</button>
+        <div class="error" id="errorMessage"></div>
       </div>
     </div>
   </div>
@@ -161,90 +223,33 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-    // Supabase Configuration
     const SUPABASE_URL = 'https://ovmdpupofhhudxhitoov.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSIsImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const loginModal = document.getElementById('loginModal');
-    const loginErrorMessage = document.getElementById('loginErrorMessage');
-    const registerErrorMessage = document.getElementById('registerErrorMessage');
+    const modal = document.getElementById('registerModal');
+    const openModalButton = document.getElementById('openRegisterButton');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-    function openModal() {
-      loginModal.style.display = 'block';
-    }
+    openModalButton.addEventListener('click', () => {
+      modal.style.display = 'block';
+    });
 
-    window.onclick = function (event) {
-      if (event.target == loginModal) {
-        loginModal.style.display = 'none';
-      }
+    window.onclick = (event) => {
+      if (event.target === modal) modal.style.display = 'none';
     };
 
-    function switchTab(tab) {
-      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
-      document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
-      document.getElementById('loginTab').classList.toggle('active', tab === 'login');
-      document.getElementById('registerTab').classList.toggle('active', tab === 'register');
-    }
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        tabButtons.forEach((btn) => btn.classList.remove('active'));
+        tabContents.forEach((content) => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(button.dataset.tab).classList.add('active');
+      });
+    });
 
-    async function login() {
-      const phoneNumber = document.getElementById('login_phone_number').value.trim();
-      const password = document.getElementById('login_password').value.trim();
-
-      if (!phoneNumber || !password) {
-        loginErrorMessage.textContent = 'Phone number and password are required.';
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('auth_table')
-          .select('*')
-          .eq('phone_number', phoneNumber)
-          .eq('password', password)
-          .single();
-
-        if (error || !data) {
-          loginErrorMessage.textContent = 'Invalid credentials';
-          return;
-        }
-
-        if (data.role === 'admin') {
-          window.location.href = 'admin.html';
-        } else {
-          loginErrorMessage.textContent = 'Access denied. Admins only.';
-        }
-      } catch (err) {
-        console.error(err);
-        loginErrorMessage.textContent = 'An error occurred. Please try again.';
-      }
-    }
-
-    async function register() {
-      const phoneNumber = document.getElementById('register_phone_number').value.trim();
-      const password = document.getElementById('register_password').value.trim();
-
-      if (!phoneNumber || !password) {
-        registerErrorMessage.textContent = 'Phone number and password are required.';
-        return;
-      }
-
-      try {
-        const { error } = await supabase.from('auth_table').insert([
-          { phone_number: phoneNumber, password, role: 'guest' },
-        ]);
-
-        if (error) {
-          registerErrorMessage.textContent = error.message;
-        } else {
-          alert('Registration successful! Please log in.');
-          switchTab('login');
-        }
-      } catch (err) {
-        console.error(err);
-        registerErrorMessage.textContent = 'An error occurred. Please try again.';
-      }
-    }
+    // Add Log In and Register Handlers
   </script>
 </body>
 </html>
