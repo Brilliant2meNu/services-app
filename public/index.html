@@ -92,6 +92,27 @@
       color: red;
       margin-top: 10px;
     }
+
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      cursor: pointer;
+      padding: 5px 10px;
+      font-weight: bold;
+      color: #007BFF;
+    }
+
+    .tab:hover {
+      text-decoration: underline;
+    }
+
+    .tab.active {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -112,13 +133,28 @@
   <!-- Modal -->
   <div class="modal" id="loginModal">
     <div class="modal-content">
-      <h2 id="modalTitle">Log In</h2>
-      <label for="phone_number">Phone Number:</label>
-      <input type="text" id="phone_number" placeholder="Enter phone number">
-      <label for="password">Password:</label>
-      <input type="password" id="password" placeholder="Enter password">
-      <button onclick="login()">Log In</button>
-      <div class="error-message" id="errorMessage"></div>
+      <div class="tabs">
+        <div class="tab active" id="loginTab" onclick="switchTab('login')">Log In</div>
+        <div class="tab" id="registerTab" onclick="switchTab('register')">Register</div>
+      </div>
+      <div id="loginForm">
+        <h2>Log In</h2>
+        <label for="phone_number">Phone Number:</label>
+        <input type="text" id="login_phone_number" placeholder="Enter phone number">
+        <label for="password">Password:</label>
+        <input type="password" id="login_password" placeholder="Enter password">
+        <button onclick="login()">Log In</button>
+        <div class="error-message" id="loginErrorMessage"></div>
+      </div>
+      <div id="registerForm" style="display: none;">
+        <h2>Register</h2>
+        <label for="register_phone_number">Phone Number:</label>
+        <input type="text" id="register_phone_number" placeholder="Enter phone number">
+        <label for="register_password">Password:</label>
+        <input type="password" id="register_password" placeholder="Enter password">
+        <button onclick="register()">Register</button>
+        <div class="error-message" id="registerErrorMessage"></div>
+      </div>
     </div>
   </div>
 
@@ -130,9 +166,9 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSIsImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Modal Controls
     const loginModal = document.getElementById('loginModal');
-    const errorMessage = document.getElementById('errorMessage');
+    const loginErrorMessage = document.getElementById('loginErrorMessage');
+    const registerErrorMessage = document.getElementById('registerErrorMessage');
 
     function openModal() {
       loginModal.style.display = 'block';
@@ -144,12 +180,19 @@
       }
     };
 
+    function switchTab(tab) {
+      document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+      document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+    }
+
     async function login() {
-      const phoneNumber = document.getElementById('phone_number').value.trim();
-      const password = document.getElementById('password').value.trim();
+      const phoneNumber = document.getElementById('login_phone_number').value.trim();
+      const password = document.getElementById('login_password').value.trim();
 
       if (!phoneNumber || !password) {
-        errorMessage.textContent = 'Phone number and password are required.';
+        loginErrorMessage.textContent = 'Phone number and password are required.';
         return;
       }
 
@@ -162,18 +205,44 @@
           .single();
 
         if (error || !data) {
-          errorMessage.textContent = 'Invalid credentials';
+          loginErrorMessage.textContent = 'Invalid credentials';
           return;
         }
 
         if (data.role === 'admin') {
           window.location.href = 'admin.html';
         } else {
-          errorMessage.textContent = 'Access denied. Admins only.';
+          loginErrorMessage.textContent = 'Access denied. Admins only.';
         }
       } catch (err) {
         console.error(err);
-        errorMessage.textContent = 'An error occurred. Please try again.';
+        loginErrorMessage.textContent = 'An error occurred. Please try again.';
+      }
+    }
+
+    async function register() {
+      const phoneNumber = document.getElementById('register_phone_number').value.trim();
+      const password = document.getElementById('register_password').value.trim();
+
+      if (!phoneNumber || !password) {
+        registerErrorMessage.textContent = 'Phone number and password are required.';
+        return;
+      }
+
+      try {
+        const { error } = await supabase.from('auth_table').insert([
+          { phone_number: phoneNumber, password, role: 'guest' },
+        ]);
+
+        if (error) {
+          registerErrorMessage.textContent = error.message;
+        } else {
+          alert('Registration successful! Please log in.');
+          switchTab('login');
+        }
+      } catch (err) {
+        console.error(err);
+        registerErrorMessage.textContent = 'An error occurred. Please try again.';
       }
     }
   </script>
