@@ -64,7 +64,7 @@
 </head>
 <body>
   <div id="addUserForm">
-    <h2>Add a New User</h2>
+    <h2>Add a User</h2>
     <div class="form-group">
       <label for="phone_number">Phone Number:</label>
       <input type="text" id="phone_number" placeholder="Enter phone number">
@@ -74,7 +74,7 @@
       <input type="password" id="password" placeholder="Enter password">
     </div>
     <div class="form-group">
-      <label for="role">Role (admin, guest, premium):</label>
+      <label for="role">Role:</label>
       <select id="role">
         <option value="guest">Guest</option>
         <option value="premium">Premium</option>
@@ -87,7 +87,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    // Initialize Supabase
+    // Supabase setup
     const SUPABASE_URL = 'https://ovmdpupofhhudxhitoov.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSIsImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -101,35 +101,35 @@
 
     // Submit Button Click Handler
     submitButton.addEventListener('click', async () => {
-      const phoneNumber = phoneNumberInput.value.trim();
+      const phone_number = phoneNumberInput.value.trim();
       const password = passwordInput.value.trim();
-      const role = roleInput.value.trim();
+      const role = roleInput.value;
 
-      // Validation
-      if (!phoneNumber || !password || !role) {
+      // Validate fields
+      if (!phone_number || !password || !role) {
         errorMessage.textContent = 'All fields are required.';
         return;
       }
 
-      if (!['admin', 'guest', 'premium'].includes(role)) {
-        errorMessage.textContent = 'Role must be admin, guest, or premium.';
-        return;
-      }
+      try {
+        // Insert into Supabase
+        const { error } = await supabase.from('auth_table').insert([
+          { phone_number, password, role }
+        ]);
 
-      // Insert into Supabase
-      const { data, error } = await supabase
-        .from('auth_table')
-        .insert([{ phone_number: phoneNumber, password, role }]);
+        if (error) {
+          throw error;
+        }
 
-      if (error) {
-        console.error(error);
-        errorMessage.textContent = `Error: ${error.message}`;
-      } else {
+        // Success
         alert('User added successfully!');
         phoneNumberInput.value = '';
         passwordInput.value = '';
         roleInput.value = 'guest';
         errorMessage.textContent = '';
+      } catch (err) {
+        console.error(err);
+        errorMessage.textContent = `Error: ${err.message}`;
       }
     });
   </script>
