@@ -13,36 +13,36 @@
       background-color: #f8f9fa;
     }
 
-    #addUserForm {
-      margin: 20px auto;
+    .container {
       max-width: 400px;
+      margin: 50px auto;
+      text-align: left;
       padding: 20px;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      background-color: white;
-      text-align: left;
+      background: white;
     }
 
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
 
-    label {
+    .form-group label {
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
     }
 
-    input, select {
-      width: 100%;
+    .form-group input, .form-group select {
+      width: calc(100% - 20px);
       padding: 10px;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
 
-    button {
-      width: 100%;
+    .form-group button {
+      width: calc(100% - 20px);
       padding: 10px;
       font-size: 1rem;
       cursor: pointer;
@@ -52,19 +52,24 @@
       border-radius: 5px;
     }
 
-    button:hover {
+    .form-group button:hover {
       background-color: #0056b3;
     }
 
-    .error {
+    .error-message {
       color: red;
+      margin-top: 10px;
+    }
+
+    .success-message {
+      color: green;
       margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="addUserForm">
-    <h2>Add a User</h2>
+  <div class="container">
+    <h1>Add a User</h1>
     <div class="form-group">
       <label for="phone_number">Phone Number:</label>
       <input type="text" id="phone_number" placeholder="Enter phone number">
@@ -81,55 +86,44 @@
         <option value="admin">Admin</option>
       </select>
     </div>
-    <button id="submitButton">Submit</button>
-    <div class="error" id="errorMessage"></div>
+    <div class="form-group">
+      <button id="submit">Submit</button>
+    </div>
+    <div id="message" class="error-message"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    // Supabase setup
-    const SUPABASE_URL = 'https://ovmdpupofhhudxhitoov.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSIsImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseUrl = 'https://ovmdpupofhhudxhitoov.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSIsImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // DOM Elements
-    const phoneNumberInput = document.getElementById('phone_number');
-    const passwordInput = document.getElementById('password');
-    const roleInput = document.getElementById('role');
-    const submitButton = document.getElementById('submitButton');
-    const errorMessage = document.getElementById('errorMessage');
+    document.getElementById('submit').addEventListener('click', async () => {
+      const phoneNumber = document.getElementById('phone_number').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const role = document.getElementById('role').value;
+      const messageDiv = document.getElementById('message');
 
-    // Submit Button Click Handler
-    submitButton.addEventListener('click', async () => {
-      const phone_number = phoneNumberInput.value.trim();
-      const password = passwordInput.value.trim();
-      const role = roleInput.value;
+      messageDiv.textContent = ''; // Clear messages
 
-      // Validate fields
-      if (!phone_number || !password || !role) {
-        errorMessage.textContent = 'All fields are required.';
+      if (!phoneNumber || !password || !role) {
+        messageDiv.textContent = 'All fields are required.';
         return;
       }
 
       try {
-        // Insert into Supabase
-        const { error } = await supabase.from('auth_table').insert([
-          { phone_number, password, role }
-        ]);
+        const { data, error } = await supabase
+          .from('auth_table')
+          .insert([{ phone_number: phoneNumber, password: password, role: role }]);
 
         if (error) {
-          throw error;
+          messageDiv.textContent = `Error: ${error.message}`;
+        } else {
+          messageDiv.className = 'success-message';
+          messageDiv.textContent = 'User added successfully!';
         }
-
-        // Success
-        alert('User added successfully!');
-        phoneNumberInput.value = '';
-        passwordInput.value = '';
-        roleInput.value = 'guest';
-        errorMessage.textContent = '';
       } catch (err) {
-        console.error(err);
-        errorMessage.textContent = `Error: ${err.message}`;
+        messageDiv.textContent = `Unexpected Error: ${err.message}`;
       }
     });
   </script>
