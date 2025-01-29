@@ -6,11 +6,11 @@
   <title>Admin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
+    /* Styling retained as is */
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
     }
-
     .container {
       margin: 20px auto;
       text-align: center;
@@ -19,15 +19,9 @@
       background: white;
       max-width: 800px;
     }
-
     h1, h2 {
       color: #007BFF;
     }
-
-    .search-box {
-      margin-bottom: 20px;
-    }
-
     .search-box input {
       width: 60%;
       padding: 10px;
@@ -35,7 +29,6 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
     .search-box button {
       padding: 10px 20px;
       border: none;
@@ -45,30 +38,11 @@
       border-radius: 5px;
       margin-left: 10px;
     }
-
-    #client-results {
-      list-style: none;
-      padding: 0;
-    }
-
-    #client-results li {
-      padding: 10px;
-      margin: 5px 0;
-      background: #f1f1f1;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    #client-results li:hover {
-      background: #ddd;
-    }
-
     .tabs {
       display: flex;
       justify-content: space-around;
       margin: 20px 0;
     }
-
     .tabs button {
       padding: 10px 20px;
       border: none;
@@ -78,11 +52,9 @@
       font-weight: bold;
       color: #007BFF;
     }
-
     .tabs button.active {
       border-bottom: 2px solid #007BFF;
     }
-
     .tab-content {
       display: none;
       text-align: left;
@@ -91,11 +63,23 @@
       border-radius: 5px;
       background: #fff;
     }
-
     .tab-content.active {
       display: block;
     }
-
+    #client-results {
+      list-style: none;
+      padding: 0;
+    }
+    #client-results li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f1f1f1;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    #client-results li:hover {
+      background: #ddd;
+    }
     .qr-generator input {
       padding: 10px;
       width: 80%;
@@ -103,7 +87,6 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
     .qr-generator button {
       padding: 10px 20px;
       border: none;
@@ -112,7 +95,6 @@
       cursor: pointer;
       border-radius: 5px;
     }
-
     .qr-code img {
       margin-top: 20px;
     }
@@ -125,8 +107,8 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter First/Last Name or Phone Number" />
-      <button onclick="confirmSelection()">OK</button>
+      <input type="text" id="client-search" placeholder="Enter First/Last Name or Phone" />
+      <button onclick="searchClients()">OK</button>
       <ul id="client-results"></ul>
     </div>
 
@@ -143,18 +125,15 @@
     </div>
     <div class="tab-content active" id="chat-history">
       <h3>Chat History</h3>
-      <p>View and respond to client inquiries here.</p>
-      <button>Cancel</button> <button>Save</button>
+      <p id="chat-data">View and respond to client inquiries here.</p>
     </div>
     <div class="tab-content" id="credentials">
       <h3>Credentials</h3>
-      <p>Manage client credentials and reset passwords.</p>
-      <button>Cancel</button> <button>Save</button>
+      <p id="credentials-data">Manage client credentials and reset passwords.</p>
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
-      <p>View client usage metrics and chatbot interactions.</p>
-      <button>Cancel</button> <button>Save</button>
+      <p id="usage-data">View client usage metrics and chatbot interactions.</p>
     </div>
 
     <!-- QR Code Generator -->
@@ -167,13 +146,13 @@
   </div>
 
   <script>
-    // Supabase Initialization
+    // Initialize Supabase
     const supabase = supabase.createClient(
       'https://ovmdpupofhhudxhitoov.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+      'YOUR_SUPABASE_ANON_KEY'
     );
 
-    // Dynamic Client Search
+    // Search Clients
     async function searchClients() {
       const query = document.getElementById('client-search').value;
       if (query === '') {
@@ -182,44 +161,33 @@
       }
       const { data, error } = await supabase
         .from('users')
-        .select('first_name, last_name, phone_number, product_history')
+        .select('id, first_name, last_name, phone_number')
         .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,phone_number.ilike.%${query}%`);
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      const resultsList = document.getElementById('client-results');
-      resultsList.innerHTML = data
+      if (error) console.error(error);
+      document.getElementById('client-results').innerHTML = data
         .map(
           user =>
-            `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.product_history}')">
-              ${user.first_name} ${user.last_name} (${user.phone_number})
-            </li>`
+            `<li onclick="selectClient(${user.id}, '${user.first_name}', '${user.last_name}')">${user.first_name} ${user.last_name} (${user.phone_number})</li>`
         )
         .join('');
     }
 
-    // Confirm Selection
-    function confirmSelection() {
-      const resultsList = document.getElementById('client-results');
-      if (resultsList.firstChild) {
-        resultsList.firstChild.click();
-      }
-    }
-
     // Select Client
-    function selectClient(firstName, lastName, phoneNumber, productHistory) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${productHistory}`;
-      document.getElementById('client-results').innerHTML = '';
+    async function selectClient(id, firstName, lastName) {
+      document.getElementById('client-name').textContent = `${firstName} ${lastName}`;
+      const { data: chatData } = await supabase
+        .from('interaction_history')
+        .select('*')
+        .eq('user_id', id);
+      const { data: credentials } = await supabase.from('users').select('*').eq('id', id);
+      document.getElementById('chat-data').textContent = JSON.stringify(chatData);
+      document.getElementById('credentials-data').textContent = JSON.stringify(credentials);
     }
 
     // Switch Tabs
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-
       document.getElementById(tabId).classList.add('active');
       document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
     }
@@ -227,12 +195,13 @@
     // Generate QR Code
     function generateQRCode() {
       const qrURL = document.getElementById('qr-url').value;
-      if (qrURL.trim() === '') {
+      if (!qrURL) {
         alert('Please enter a URL!');
         return;
       }
-      const qrCodeDiv = document.getElementById('qr-code');
-      qrCodeDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
+      document.getElementById('qr-code').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+        qrURL
+      )}&size=200x200" alt="QR Code" />`;
     }
   </script>
 </body>
