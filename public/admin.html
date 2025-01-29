@@ -71,10 +71,14 @@
 
   <script>
     // Initialize Supabase
-    const supabase = supabase.createClient(
-      'https://ovmdpupofhhudxhitoov.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-    );
+    let supabase;
+    window.onload = () => {
+      supabase = supabase.createClient(
+        'https://ovmdpupofhhudxhitoov.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+      );
+      loadUsers();
+    };
 
     let users = [];
 
@@ -132,9 +136,6 @@
       );
       renderUsers(filteredUsers);
     }
-
-    // Load users when the page is ready
-    window.onload = loadUsers;
   </script>
 </body>
 </html>
