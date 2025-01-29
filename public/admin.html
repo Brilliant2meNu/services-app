@@ -36,9 +36,22 @@
       border-radius: 5px;
     }
 
+    .search-box button {
+      padding: 10px 20px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 10px;
+    }
+
     #client-results {
       list-style: none;
       padding: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 0;
     }
 
     #client-results li {
@@ -115,7 +128,7 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter First/Last Name" oninput="searchClients()" />
+      <input type="text" id="client-search" placeholder="Enter Name, Phone, or Email" oninput="searchClients()" />
       <ul id="client-results"></ul>
     </div>
 
@@ -162,16 +175,16 @@
     );
 
     async function searchClients() {
-      const query = document.getElementById('client-search').value;
-      if (query.trim() === '') {
+      const query = document.getElementById('client-search').value.trim();
+      if (query === '') {
         document.getElementById('client-results').innerHTML = '';
         return;
       }
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, first_name, last_name, phone_number, product_history')
-        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`);
+        .select('id, first_name, last_name, phone_number, email')
+        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,phone_number.ilike.%${query}%,email.ilike.%${query}%`);
 
       if (error) {
         console.error('Error fetching users:', error);
@@ -182,15 +195,15 @@
       resultsList.innerHTML = data
         .map(
           user =>
-            `<li onclick="selectClient(${user.id}, '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.product_history}')">
-              ${user.first_name} ${user.last_name} (${user.phone_number})
+            `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
+              ${user.first_name} ${user.last_name} (${user.phone_number}, ${user.email})
             </li>`
         )
         .join('');
     }
 
-    function selectClient(id, firstName, lastName, phoneNumber, productHistory) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${productHistory}`;
+    function selectClient(firstName, lastName, phoneNumber, email) {
+      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
       document.getElementById('client-results').innerHTML = '';
     }
 
@@ -203,8 +216,8 @@
     }
 
     function generateQRCode() {
-      const qrURL = document.getElementById('qr-url').value;
-      if (qrURL.trim() === '') {
+      const qrURL = document.getElementById('qr-url').value.trim();
+      if (qrURL === '') {
         alert('Please enter a URL!');
         return;
       }
