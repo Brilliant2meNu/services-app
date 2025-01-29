@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -126,36 +126,6 @@
     <div id="client-details">
       <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
     </div>
-
-    <!-- Tabs Section -->
-    <div class="tabs">
-      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
-      <button class="tab-button" onclick="switchTab('credentials')">Credentials</button>
-      <button class="tab-button" onclick="switchTab('usage')">Usage</button>
-    </div>
-    <div class="tab-content active" id="chat-history">
-      <h3>Chat History</h3>
-      <p>View and respond to client inquiries here.</p>
-      <button>Cancel</button> <button>Save</button>
-    </div>
-    <div class="tab-content" id="credentials">
-      <h3>Credentials</h3>
-      <p>Manage client credentials and reset passwords.</p>
-      <button>Cancel</button> <button>Save</button>
-    </div>
-    <div class="tab-content" id="usage">
-      <h3>Usage</h3>
-      <p>View client usage metrics and chatbot interactions.</p>
-      <button>Cancel</button> <button>Save</button>
-    </div>
-
-    <!-- QR Code Generator -->
-    <div class="qr-generator">
-      <h2>QR Code Generation</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
-      <button onclick="generateQRCode()">Generate QR Code</button>
-      <div class="qr-code" id="qr-code"></div>
-    </div>
   </div>
 
   <script>
@@ -165,7 +135,7 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    // Search Clients
+    // Function to fetch and display data
     async function searchClients() {
       const query = document.getElementById('client-search').value.trim();
       if (query === '') {
@@ -173,6 +143,7 @@
         return;
       }
 
+      // Fetch data from Supabase
       const { data, error } = await supabase
         .from('users')
         .select('id, first_name, last_name, phone_number, email')
@@ -180,9 +151,11 @@
 
       if (error) {
         console.error('Error fetching users:', error);
+        alert('Error fetching users. Check console for details.');
         return;
       }
 
+      // Populate results
       const resultsList = document.getElementById('client-results');
       resultsList.innerHTML = data
         .map(
@@ -194,31 +167,26 @@
         .join('');
     }
 
-    // Select Client
+    // Select a client
     function selectClient(firstName, lastName, phoneNumber, email) {
       document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
       document.getElementById('client-results').innerHTML = '';
     }
 
-    // Switch Tabs
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
-    }
-
-    // Generate QR Code
-    function generateQRCode() {
-      const qrURL = document.getElementById('qr-url').value.trim();
-      if (qrURL === '') {
-        alert('Please enter a URL!');
-        return;
+    // Test connection to Supabase
+    async function testSupabaseConnection() {
+      const { data, error } = await supabase.from('users').select('*');
+      if (error) {
+        console.error('Error connecting to Supabase:', error);
+        alert('Supabase is NOT connected. Check API keys.');
+      } else {
+        console.log('Connection successful:', data);
+        alert('Supabase is connected and data is accessible!');
       }
-      const qrCodeDiv = document.getElementById('qr-code');
-      qrCodeDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
     }
+
+    // Run connection test on page load
+    window.onload = testSupabaseConnection;
   </script>
 </body>
 </html>
