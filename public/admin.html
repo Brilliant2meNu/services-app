@@ -99,6 +99,23 @@
     .qr-code img {
       margin-top: 20px;
     }
+
+    #client-results {
+      list-style: none;
+      padding: 0;
+    }
+
+    #client-results li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f1f1f1;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    #client-results li:hover {
+      background: #ddd;
+    }
   </style>
 </head>
 <body>
@@ -164,7 +181,7 @@
         return;
       }
       const { data, error } = await supabase
-        .from('users') // Supabase 'users' table
+        .from('users')
         .select('first_name, last_name, product_history')
         .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`);
 
