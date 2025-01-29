@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,34 +17,183 @@
       padding: 20px;
       border-radius: 5px;
       background: white;
+      max-width: 800px;
     }
 
     h1, h2 {
       color: #007BFF;
     }
 
-    .navigation-links a {
-      text-decoration: none;
-      margin: 10px;
+    .search-box input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+
+    .tabs button {
+      padding: 10px 20px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: #f8f9fa;
+      cursor: pointer;
+      font-weight: bold;
       color: #007BFF;
     }
 
-    .navigation-links a:hover {
-      color: #0056b3;
+    .tabs button.active {
+      border-bottom: 2px solid #007BFF;
+    }
+
+    .tab-content {
+      display: none;
+      text-align: left;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #fff;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .qr-generator input {
+      padding: 10px;
+      width: 80%;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .qr-generator button {
+      padding: 10px 20px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .qr-code img {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Admin Dashboard</h1>
-    <section>
-      <h2>Client Data</h2>
-      <div>No data yet.</div>
-    </section>
-    <div class="navigation-links">
-      <a href="/settings.html">Settings</a>
-      <a href="/index.html">Home</a>
+
+    <!-- Client Search -->
+    <div class="search-box">
+      <h2>Client Search</h2>
+      <input type="text" id="client-search" placeholder="Enter First/Last Name" oninput="searchClients()" />
+      <ul id="client-results"></ul>
+    </div>
+
+    <!-- Client Details -->
+    <div id="client-details">
+      <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
+      <button class="tab-button" onclick="switchTab('credentials')">Credentials</button>
+      <button class="tab-button" onclick="switchTab('usage')">Usage</button>
+    </div>
+    <div class="tab-content active" id="chat-history">
+      <h3>Chat History</h3>
+      <p>View and respond to client inquiries here.</p>
+      <button>Cancel</button> <button>Save</button>
+    </div>
+    <div class="tab-content" id="credentials">
+      <h3>Credentials</h3>
+      <p>Manage client credentials and reset passwords.</p>
+      <button>Cancel</button> <button>Save</button>
+    </div>
+    <div class="tab-content" id="usage">
+      <h3>Usage</h3>
+      <p>View client usage metrics and chatbot interactions.</p>
+      <button>Cancel</button> <button>Save</button>
+    </div>
+
+    <!-- QR Code Generator -->
+    <div class="qr-generator">
+      <h2>QR Code Generation</h2>
+      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
+      <button onclick="generateQRCode()">Generate QR Code</button>
+      <div class="qr-code" id="qr-code"></div>
     </div>
   </div>
+
+  <script>
+    // Supabase Initialization
+    const supabase = supabase.createClient(
+      'https://ovmdpupofhhudxhitoov.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+    );
+
+    // Dynamic Client Search
+    async function searchClients() {
+      const query = document.getElementById('client-search').value;
+      if (query === '') {
+        document.getElementById('client-results').innerHTML = '';
+        return;
+      }
+      const { data, error } = await supabase
+        .from('users') // Supabase 'users' table
+        .select('first_name, last_name, product_history')
+        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const resultsList = document.getElementById('client-results');
+      resultsList.innerHTML = data
+        .map(
+          user =>
+            `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.product_history}')">
+              ${user.first_name} ${user.last_name} (${user.product_history})
+            </li>`
+        )
+        .join('');
+    }
+
+    // Select Client
+    function selectClient(firstName, lastName, productHistory) {
+      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${productHistory}`;
+      document.getElementById('client-results').innerHTML = '';
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
+    }
+
+    // Generate QR Code
+    function generateQRCode() {
+      const qrURL = document.getElementById('qr-url').value;
+      if (qrURL.trim() === '') {
+        alert('Please enter a URL!');
+        return;
+      }
+      const qrCodeDiv = document.getElementById('qr-code');
+      qrCodeDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
+    }
+  </script>
 </body>
 </html>
