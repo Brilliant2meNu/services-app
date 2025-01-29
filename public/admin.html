@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -36,39 +36,24 @@
       border-radius: 5px;
     }
 
-    .search-box button {
-      padding: 10px 20px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-left: 10px;
-    }
-
     #client-results {
       list-style: none;
       padding: 0;
       max-height: 200px;
       overflow-y: auto;
       margin: 0;
-      border: 1px solid #ccc;
-      background-color: white;
-      z-index: 100;
-      position: absolute;
-      width: 60%;
-      left: 20%;
     }
 
     #client-results li {
       padding: 10px;
-      margin: 0;
-      border-bottom: 1px solid #ddd;
+      margin: 5px 0;
+      background: #f1f1f1;
+      border: 1px solid #ccc;
       cursor: pointer;
     }
 
     #client-results li:hover {
-      background: #f1f1f1;
+      background: #ddd;
     }
 
     .tabs {
@@ -133,7 +118,7 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter Name, Phone, or Email" oninput="debouncedSearch()" autocomplete="off" />
+      <input type="text" id="client-search" placeholder="Enter Name, Phone, or Email" oninput="searchClients()" />
       <ul id="client-results"></ul>
     </div>
 
@@ -174,18 +159,13 @@
   </div>
 
   <script>
+    // Initialize Supabase
     const supabase = supabase.createClient(
       'https://ovmdpupofhhudxhitoov.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    let debounceTimeout;
-
-    function debouncedSearch() {
-      clearTimeout(debounceTimeout);
-      debounceTimeout = setTimeout(searchClients, 300);
-    }
-
+    // Search Clients
     async function searchClients() {
       const query = document.getElementById('client-search').value.trim();
       if (query === '') {
@@ -208,17 +188,19 @@
         .map(
           user =>
             `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
-              ${user.first_name} ${user.last_name} (${user.phone_number ? user.phone_number : 'N/A'}, ${user.email ? user.email : 'N/A'})
+              ${user.first_name} ${user.last_name} (${user.phone_number}, ${user.email})
             </li>`
         )
         .join('');
     }
 
+    // Select Client
     function selectClient(firstName, lastName, phoneNumber, email) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber || 'N/A'} / ${email || 'N/A'}`;
+      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
       document.getElementById('client-results').innerHTML = '';
     }
 
+    // Switch Tabs
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -227,6 +209,7 @@
       document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
     }
 
+    // Generate QR Code
     function generateQRCode() {
       const qrURL = document.getElementById('qr-url').value.trim();
       if (qrURL === '') {
