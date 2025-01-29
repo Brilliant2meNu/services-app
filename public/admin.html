@@ -86,34 +86,39 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    // Fetch Clients from the Supabase "users" Table
+    // Fetch Clients from Supabase "users" Table
     async function fetchClients() {
       const dropdown = document.getElementById('client-dropdown');
       dropdown.innerHTML = '<option>Loading clients...</option>';
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, phone_number, email')
-        .order('first_name', { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, first_name, last_name, phone_number, email')
+          .order('first_name', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching clients:', error);
-        dropdown.innerHTML = '<option>Error loading clients</option>';
-        return;
+        if (error) {
+          console.error('Error fetching clients:', error);
+          dropdown.innerHTML = '<option>Error loading clients</option>';
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          dropdown.innerHTML = '<option>No clients found</option>';
+          return;
+        }
+
+        // Populate Dropdown
+        dropdown.innerHTML = data
+          .map(
+            client =>
+              `<option value="${client.id}">${client.first_name} ${client.last_name} (${client.phone_number || 'No phone'}, ${client.email || 'No email'})</option>`
+          )
+          .join('');
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        dropdown.innerHTML = '<option>Unexpected error occurred</option>';
       }
-
-      if (data.length === 0) {
-        dropdown.innerHTML = '<option>No clients found</option>';
-        return;
-      }
-
-      // Populate Dropdown
-      dropdown.innerHTML = data
-        .map(
-          client =>
-            `<option value="${client.id}">${client.first_name} ${client.last_name} (${client.phone_number || 'No phone'}, ${client.email || 'No email'})</option>`
-        )
-        .join('');
     }
 
     // Confirm Selection
