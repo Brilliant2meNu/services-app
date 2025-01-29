@@ -21,94 +21,120 @@
     h1, h2 {
       color: #007BFF;
     }
-    select {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    table th {
+      background-color: #007BFF;
+      color: white;
+    }
+    input[type="text"] {
       width: 60%;
       padding: 10px;
       margin: 10px 0;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-    button {
-      padding: 10px 20px;
-      margin: 5px;
-      border: none;
-      border-radius: 5px;
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #selected-client {
+    #error-message {
+      color: red;
       margin-top: 20px;
-      font-size: 1.2em;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Admin Dashboard</h1>
-    <h2>Client Search</h2>
-    <select id="client-dropdown">
-      <option>Loading clients...</option>
-    </select>
-    <br>
-    <button onclick="confirmSelection()">Confirm</button>
-    <button onclick="clearSelection()">Cancel</button>
-    <div id="selected-client">Selected Client: None</div>
+    <h2>Search Users</h2>
+    <input type="text" id="search-input" placeholder="Search by name, phone, or email..." oninput="filterUsers()" />
+    <div id="error-message"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Phone Number</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="user-table-body">
+        <tr><td colspan="4">Loading users...</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <script>
-    // Supabase Initialization
+    // Initialize Supabase
     const supabase = supabase.createClient(
       'https://ovmdpupofhhudxhitoov.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    // Load Clients into Dropdown
-    async function loadClients() {
-      const dropdown = document.getElementById('client-dropdown');
+    let users = [];
+
+    // Load users from Supabase
+    async function loadUsers() {
+      const tableBody = document.getElementById('user-table-body');
+      const errorMessage = document.getElementById('error-message');
+
       try {
-        const { data, error } = await supabase.from('users').select('id, first_name, last_name, phone_number, email');
+        const { data, error } = await supabase.from('users').select('first_name, last_name, phone_number, email');
         if (error) {
-          console.error('Error fetching clients:', error);
-          dropdown.innerHTML = '<option>Error loading clients</option>';
+          console.error('Error fetching users:', error);
+          errorMessage.textContent = 'Error loading users. Please check your database.';
+          tableBody.innerHTML = '<tr><td colspan="4">Error loading users</td></tr>';
           return;
         }
-        // Populate Dropdown
-        dropdown.innerHTML = data.map(client =>
-          `<option value="${client.id}">
-            ${client.first_name} ${client.last_name} (${client.phone_number}, ${client.email})
-          </option>`
-        ).join('');
-        dropdown.insertAdjacentHTML('afterbegin', '<option value="" disabled selected>Select a client</option>');
+
+        users = data;
+        renderUsers(users);
       } catch (err) {
-        console.error('Unexpected Error:', err);
-        dropdown.innerHTML = '<option>Error loading clients</option>';
+        console.error('Unexpected error:', err);
+        errorMessage.textContent = 'Unexpected error occurred. Check console for details.';
+        tableBody.innerHTML = '<tr><td colspan="4">Error loading users</td></tr>';
       }
     }
 
-    // Confirm Selected Client
-    function confirmSelection() {
-      const dropdown = document.getElementById('client-dropdown');
-      const selectedOption = dropdown.options[dropdown.selectedIndex];
-      const selectedClientDiv = document.getElementById('selected-client');
-      if (dropdown.value) {
-        selectedClientDiv.textContent = `Selected Client: ${selectedOption.text}`;
-      } else {
-        alert('Please select a client.');
+    // Render users into the table
+    function renderUsers(data) {
+      const tableBody = document.getElementById('user-table-body');
+      if (data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4">No users found</td></tr>';
+        return;
       }
+
+      tableBody.innerHTML = data
+        .map(user => `
+          <tr>
+            <td>${user.first_name}</td>
+            <td>${user.last_name}</td>
+            <td>${user.phone_number}</td>
+            <td>${user.email}</td>
+          </tr>
+        `)
+        .join('');
     }
 
-    // Clear Selection
-    function clearSelection() {
-      document.getElementById('client-dropdown').selectedIndex = 0;
-      document.getElementById('selected-client').textContent = 'Selected Client: None';
+    // Filter users based on search input
+    function filterUsers() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const filteredUsers = users.filter(user =>
+        (user.first_name && user.first_name.toLowerCase().includes(query)) ||
+        (user.last_name && user.last_name.toLowerCase().includes(query)) ||
+        (user.phone_number && user.phone_number.toLowerCase().includes(query)) ||
+        (user.email && user.email.toLowerCase().includes(query))
+      );
+      renderUsers(filteredUsers);
     }
 
-    // Load clients on page load
-    window.onload = loadClients;
+    // Load users when the page is ready
+    window.onload = loadUsers;
   </script>
 </body>
 </html>
