@@ -36,16 +36,6 @@
       border-radius: 5px;
     }
 
-    .search-box button {
-      padding: 10px 20px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-left: 10px;
-    }
-
     #client-results {
       list-style: none;
       padding: 0;
@@ -125,8 +115,7 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter First/Last Name" />
-      <button onclick="searchClients()">OK</button>
+      <input type="text" id="client-search" placeholder="Enter First/Last Name" oninput="searchClients()" />
       <ul id="client-results"></ul>
     </div>
 
@@ -181,7 +170,7 @@
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, first_name, last_name, phone_number')
+        .select('id, first_name, last_name, phone_number, product_history')
         .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`);
 
       if (error) {
@@ -193,15 +182,15 @@
       resultsList.innerHTML = data
         .map(
           user =>
-            `<li onclick="selectClient(${user.id}, '${user.first_name}', '${user.last_name}', '${user.phone_number}')">
+            `<li onclick="selectClient(${user.id}, '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.product_history}')">
               ${user.first_name} ${user.last_name} (${user.phone_number})
             </li>`
         )
         .join('');
     }
 
-    function selectClient(id, firstName, lastName, phoneNumber) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber}`;
+    function selectClient(id, firstName, lastName, phoneNumber, productHistory) {
+      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${productHistory}`;
       document.getElementById('client-results').innerHTML = '';
     }
 
