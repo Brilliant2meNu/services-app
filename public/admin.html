@@ -70,12 +70,10 @@
   </div>
 
   <script>
-    // Supabase Initialization
-    const SUPABASE_URL = 'https://ovmdpupofhhudxhitoov.supabase.co';
-    const SUPABASE_KEY =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Initialize Supabase
+    const supabaseUrl = 'https://ovmdpupofhhudxhitoov.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     let users = [];
 
@@ -134,7 +132,7 @@
       renderUsers(filteredUsers);
     }
 
-    // Run connection test and load users when the page loads
+    // Run connection test and load users on page load
     window.onload = loadUsers;
   </script>
 </body>
