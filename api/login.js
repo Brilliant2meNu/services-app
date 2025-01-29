@@ -1,184 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f8f9fa;
-      margin: 20px;
-    }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+<script>
+  const supabase = supabase.createClient(
+    'https://ovmdpupofhhudxhitoov.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+  );
 
-    .login-container, .password-modal {
-      max-width: 400px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+  const loginForm = document.getElementById("loginForm");
+  const errorElement = document.getElementById("error");
 
-    .password-modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-    .overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 5;
-    }
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .eq("password", password);
 
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .error {
-      color: red;
-      font-size: 0.9rem;
-    }
-  </style>
-</head>
-<body>
-  <div class="login-container">
-    <h1>Login</h1>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Login</button>
-    </form>
-    <p class="error" id="error"></p>
-    <button id="changePasswordBtn">Create/Change Password</button>
-  </div>
-
-  <div class="overlay" id="overlay"></div>
-  
-  <div class="password-modal" id="passwordModal">
-    <h2>Create/Change Password</h2>
-    <form id="passwordForm">
-      <input type="email" id="emailForPassword" placeholder="Email" required>
-      <input type="password" id="newPassword" placeholder="New Password" required>
-      <input type="password" id="confirmPassword" placeholder="Re-enter New Password" required>
-      <button type="submit">Save</button>
-    </form>
-    <button id="closeModal">Cancel</button>
-    <p class="error" id="passwordError"></p>
-  </div>
-
-  <script>
-    const loginForm = document.getElementById("loginForm");
-    const passwordForm = document.getElementById("passwordForm");
-    const errorElement = document.getElementById("error");
-    const passwordError = document.getElementById("passwordError");
-    const passwordModal = document.getElementById("passwordModal");
-    const overlay = document.getElementById("overlay");
-    const changePasswordBtn = document.getElementById("changePasswordBtn");
-    const closeModal = document.getElementById("closeModal");
-
-    // Show password modal
-    changePasswordBtn.addEventListener("click", () => {
-      passwordModal.style.display = "block";
-      overlay.style.display = "block";
-    });
-
-    // Close modal
-    closeModal.addEventListener("click", () => {
-      passwordModal.style.display = "none";
-      overlay.style.display = "none";
-    });
-
-    // Login form submission
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim().toLowerCase();
-      const password = document.getElementById("password").value;
-
-      try {
-        const response = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          window.location.href = data.redirect; // Redirect based on role
-        } else {
-          const errorData = await response.json();
-          errorElement.textContent = errorData.message || "Invalid credentials";
-        }
-      } catch (error) {
-        console.error("An error occurred:", error);
-        errorElement.textContent = "An error occurred. Please try again.";
-      }
-    });
-
-    // Password form submission
-    passwordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("emailForPassword").value.trim().toLowerCase();
-      const newPassword = document.getElementById("newPassword").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
-
-      if (newPassword !== confirmPassword) {
-        passwordError.textContent = "Passwords do not match.";
+      if (error || data.length === 0) {
+        errorElement.textContent = "Invalid email or password.";
         return;
       }
 
-      try {
-        const response = await fetch("/api/update-password", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, newPassword }),
-        });
-
-        if (response.ok) {
-          alert("Password updated successfully!");
-          passwordModal.style.display = "none";
-          overlay.style.display = "none";
-        } else {
-          const errorData = await response.json();
-          passwordError.textContent = errorData.message || "Failed to update password.";
-        }
-      } catch (error) {
-        console.error("An error occurred:", error);
-        passwordError.textContent = "An error occurred. Please try again.";
+      const userRole = data[0].role;
+      if (userRole === "admin") {
+        window.location.href = "/admin-dashboard.html";
+      } else if (userRole === "premium") {
+        window.location.href = "/premium-dashboard.html";
+      } else {
+        window.location.href = "/guest-dashboard.html";
       }
-    });
-  </script>
-</body>
-</html>
+    } catch (err) {
+      console.error(err);
+      errorElement.textContent = "An error occurred. Please try again.";
+    }
+  });
+</script>
