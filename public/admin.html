@@ -10,7 +10,6 @@
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
     }
-
     .container {
       margin: 20px auto;
       text-align: center;
@@ -19,64 +18,45 @@
       background: white;
       max-width: 800px;
     }
-
     h1, h2 {
       color: #007BFF;
     }
-
-    .search-box {
-      margin-bottom: 20px;
-    }
-
-    .search-box select {
+    select {
       width: 60%;
       padding: 10px;
       margin: 10px 0;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
-    .buttons {
-      margin-top: 20px;
-    }
-
-    .buttons button {
+    button {
       padding: 10px 20px;
+      margin: 5px;
       border: none;
-      background: #007BFF;
+      border-radius: 5px;
+      background-color: #007BFF;
       color: white;
       cursor: pointer;
-      border-radius: 5px;
-      margin: 5px;
     }
-
-    #client-results {
-      margin-top: 10px;
-      color: #555;
+    button:hover {
+      background-color: #0056b3;
+    }
+    #selected-client {
+      margin-top: 20px;
+      font-size: 1.2em;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Admin Dashboard</h1>
-
-    <!-- Client Search -->
-    <div class="search-box">
-      <h2>Client Search</h2>
-      <select id="client-dropdown">
-        <option>Loading clients...</option>
-      </select>
-    </div>
-
-    <div class="buttons">
-      <button onclick="confirmSelection()">Confirm</button>
-      <button onclick="cancelSelection()">Cancel</button>
-    </div>
-
-    <!-- Client Details -->
-    <div id="client-results">
-      <h3 id="selected-client">Selected Client: None</h3>
-    </div>
+    <h2>Client Search</h2>
+    <select id="client-dropdown">
+      <option>Loading clients...</option>
+    </select>
+    <br>
+    <button onclick="confirmSelection()">Confirm</button>
+    <button onclick="clearSelection()">Cancel</button>
+    <div id="selected-client">Selected Client: None</div>
   </div>
 
   <script>
@@ -86,58 +66,49 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    // Fetch Clients from Supabase "users" Table
-    async function fetchClients() {
+    // Load Clients into Dropdown
+    async function loadClients() {
       const dropdown = document.getElementById('client-dropdown');
-      dropdown.innerHTML = '<option>Loading clients...</option>';
-
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, first_name, last_name, phone_number, email')
-          .order('first_name', { ascending: true });
-
+        const { data, error } = await supabase.from('users').select('id, first_name, last_name, phone_number, email');
         if (error) {
           console.error('Error fetching clients:', error);
           dropdown.innerHTML = '<option>Error loading clients</option>';
           return;
         }
-
-        if (!data || data.length === 0) {
-          dropdown.innerHTML = '<option>No clients found</option>';
-          return;
-        }
-
         // Populate Dropdown
-        dropdown.innerHTML = data
-          .map(
-            client =>
-              `<option value="${client.id}">${client.first_name} ${client.last_name} (${client.phone_number || 'No phone'}, ${client.email || 'No email'})</option>`
-          )
-          .join('');
+        dropdown.innerHTML = data.map(client =>
+          `<option value="${client.id}">
+            ${client.first_name} ${client.last_name} (${client.phone_number}, ${client.email})
+          </option>`
+        ).join('');
+        dropdown.insertAdjacentHTML('afterbegin', '<option value="" disabled selected>Select a client</option>');
       } catch (err) {
-        console.error('Unexpected error:', err);
-        dropdown.innerHTML = '<option>Unexpected error occurred</option>';
+        console.error('Unexpected Error:', err);
+        dropdown.innerHTML = '<option>Error loading clients</option>';
       }
     }
 
-    // Confirm Selection
+    // Confirm Selected Client
     function confirmSelection() {
       const dropdown = document.getElementById('client-dropdown');
       const selectedOption = dropdown.options[dropdown.selectedIndex];
-      const selectedClient = selectedOption.text;
-      document.getElementById('selected-client').textContent = `Selected Client: ${selectedClient}`;
+      const selectedClientDiv = document.getElementById('selected-client');
+      if (dropdown.value) {
+        selectedClientDiv.textContent = `Selected Client: ${selectedOption.text}`;
+      } else {
+        alert('Please select a client.');
+      }
     }
 
-    // Cancel Selection
-    function cancelSelection() {
-      const dropdown = document.getElementById('client-dropdown');
-      dropdown.selectedIndex = 0; // Reset to the first option
+    // Clear Selection
+    function clearSelection() {
+      document.getElementById('client-dropdown').selectedIndex = 0;
       document.getElementById('selected-client').textContent = 'Selected Client: None';
     }
 
-    // Initialize the Dropdown on Page Load
-    window.onload = fetchClients;
+    // Load clients on page load
+    window.onload = loadClients;
   </script>
 </body>
 </html>
