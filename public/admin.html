@@ -28,7 +28,7 @@
       margin-bottom: 20px;
     }
 
-    .search-box input {
+    .search-box select {
       width: 60%;
       padding: 10px;
       margin: 10px 0;
@@ -36,89 +36,28 @@
       border-radius: 5px;
     }
 
-    .search-box button {
-      padding: 10px 20px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-      margin-left: 10px;
-    }
-
-    #client-results {
-      list-style: none;
-      padding: 0;
-      max-height: 200px;
-      overflow-y: auto;
-      margin: 0 auto;
-      width: 60%;
-    }
-
-    #client-results li {
-      padding: 10px;
-      margin: 5px 0;
-      background: #f1f1f1;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    #client-results li:hover {
-      background: #ddd;
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: space-around;
+    .buttons {
       margin: 20px 0;
     }
 
-    .tabs button {
+    .buttons button {
       padding: 10px 20px;
+      margin: 5px;
       border: none;
-      border-bottom: 2px solid transparent;
-      background: #f8f9fa;
-      cursor: pointer;
-      font-weight: bold;
-      color: #007BFF;
-    }
-
-    .tabs button.active {
-      border-bottom: 2px solid #007BFF;
-    }
-
-    .tab-content {
-      display: none;
-      text-align: left;
-      padding: 20px;
-      border: 1px solid #ccc;
       border-radius: 5px;
-      background: #fff;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .qr-generator input {
-      padding: 10px;
-      width: 80%;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    .qr-generator button {
-      padding: 10px 20px;
-      border: none;
       background: #007BFF;
       color: white;
       cursor: pointer;
-      border-radius: 5px;
     }
 
-    .qr-code img {
+    .buttons button:hover {
+      background: #0056b3;
+    }
+
+    #client-details {
       margin-top: 20px;
+      font-size: 18px;
+      color: #555;
     }
   </style>
 </head>
@@ -129,103 +68,77 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter Name, Phone, or Email" oninput="dynamicSearch()" />
-      <ul id="client-results"></ul>
+      <select id="client-select">
+        <option value="">Loading clients...</option>
+      </select>
+      <div class="buttons">
+        <button onclick="confirmSelection()">Confirm</button>
+        <button onclick="cancelSelection()">Cancel</button>
+      </div>
     </div>
 
     <!-- Client Details -->
     <div id="client-details">
       <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
     </div>
-
-    <!-- Tabs Section -->
-    <div class="tabs">
-      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
-      <button class="tab-button" onclick="switchTab('credentials')">Credentials</button>
-      <button class="tab-button" onclick="switchTab('usage')">Usage</button>
-    </div>
-    <div class="tab-content active" id="chat-history">
-      <h3>Chat History</h3>
-      <p>View and respond to client inquiries here.</p>
-      <button>Cancel</button> <button>Save</button>
-    </div>
-    <div class="tab-content" id="credentials">
-      <h3>Credentials</h3>
-      <p>Manage client credentials and reset passwords.</p>
-      <button>Cancel</button> <button>Save</button>
-    </div>
-    <div class="tab-content" id="usage">
-      <h3>Usage</h3>
-      <p>View client usage metrics and chatbot interactions.</p>
-      <button>Cancel</button> <button>Save</button>
-    </div>
-
-    <!-- QR Code Generator -->
-    <div class="qr-generator">
-      <h2>QR Code Generation</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
-      <button onclick="generateQRCode()">Generate QR Code</button>
-      <div class="qr-code" id="qr-code"></div>
-    </div>
   </div>
 
   <script>
+    // Initialize Supabase Client
     const supabase = supabase.createClient(
       'https://ovmdpupofhhudxhitoov.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    async function dynamicSearch() {
-      const query = document.getElementById('client-search').value.trim();
-      if (!query) {
-        document.getElementById('client-results').innerHTML = '';
-        return;
-      }
-
+    // Populate Client Dropdown
+    async function fetchClients() {
       const { data, error } = await supabase
         .from('users')
         .select('id, first_name, last_name, phone_number, email')
-        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,phone_number.ilike.%${query}%,email.ilike.%${query}%`);
+        .order('first_name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching users:', error);
-        alert('Error fetching users from database. Check logs for details.');
+        console.error('Error fetching clients:', error);
+        alert('Failed to load clients.');
         return;
       }
 
-      const resultsList = document.getElementById('client-results');
-      resultsList.innerHTML = data
-        .map(
-          user =>
-            `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
-              ${user.first_name} ${user.last_name} (${user.phone_number}, ${user.email})
-            </li>`
-        )
-        .join('');
+      const clientSelect = document.getElementById('client-select');
+      clientSelect.innerHTML = '<option value="">Select a client</option>'; // Reset options
+
+      data.forEach(client => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify(client);
+        option.textContent = `${client.first_name} ${client.last_name} (${client.phone_number || 'No phone'}, ${client.email || 'No email'})`;
+        clientSelect.appendChild(option);
+      });
     }
 
-    function selectClient(firstName, lastName, phoneNumber, email) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
-      document.getElementById('client-results').innerHTML = '';
-    }
+    // Confirm Client Selection
+    function confirmSelection() {
+      const clientSelect = document.getElementById('client-select');
+      const selectedClient = clientSelect.value;
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
-    }
-
-    function generateQRCode() {
-      const qrURL = document.getElementById('qr-url').value.trim();
-      if (!qrURL) {
-        alert('Please enter a URL!');
+      if (!selectedClient) {
+        alert('Please select a client.');
         return;
       }
-      const qrCodeDiv = document.getElementById('qr-code');
-      qrCodeDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
+
+      const client = JSON.parse(selectedClient);
+      document.getElementById('client-name').textContent = `${client.first_name} ${client.last_name} / ${client.phone_number || 'No phone'} / ${client.email || 'No email'}`;
+      alert('Client selected successfully!');
     }
+
+    // Cancel Client Selection
+    function cancelSelection() {
+      const clientSelect = document.getElementById('client-select');
+      clientSelect.value = '';
+      document.getElementById('client-name').textContent = 'CLIENT’S NAME / PRODUCT HISTORY';
+      alert('Selection canceled.');
+    }
+
+    // Fetch clients on page load
+    window.onload = fetchClients;
   </script>
 </body>
 </html>
