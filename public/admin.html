@@ -46,6 +46,23 @@
       margin-left: 10px;
     }
 
+    #client-results {
+      list-style: none;
+      padding: 0;
+    }
+
+    #client-results li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f1f1f1;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    #client-results li:hover {
+      background: #ddd;
+    }
+
     .tabs {
       display: flex;
       justify-content: space-around;
@@ -99,23 +116,6 @@
     .qr-code img {
       margin-top: 20px;
     }
-
-    #client-results {
-      list-style: none;
-      padding: 0;
-    }
-
-    #client-results li {
-      padding: 10px;
-      margin: 5px 0;
-      background: #f1f1f1;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    #client-results li:hover {
-      background: #ddd;
-    }
   </style>
 </head>
 <body>
@@ -125,8 +125,8 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter First/Last Name" />
-      <button onclick="searchClients()">OK</button>
+      <input type="text" id="client-search" placeholder="Enter First/Last Name or Phone Number" />
+      <button onclick="confirmSelection()">OK</button>
       <ul id="client-results"></ul>
     </div>
 
@@ -182,8 +182,8 @@
       }
       const { data, error } = await supabase
         .from('users')
-        .select('first_name, last_name, product_history')
-        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`);
+        .select('first_name, last_name, phone_number, product_history')
+        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,phone_number.ilike.%${query}%`);
 
       if (error) {
         console.error(error);
@@ -194,16 +194,24 @@
       resultsList.innerHTML = data
         .map(
           user =>
-            `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.product_history}')">
-              ${user.first_name} ${user.last_name} (${user.product_history})
+            `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.product_history}')">
+              ${user.first_name} ${user.last_name} (${user.phone_number})
             </li>`
         )
         .join('');
     }
 
+    // Confirm Selection
+    function confirmSelection() {
+      const resultsList = document.getElementById('client-results');
+      if (resultsList.firstChild) {
+        resultsList.firstChild.click();
+      }
+    }
+
     // Select Client
-    function selectClient(firstName, lastName, productHistory) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${productHistory}`;
+    function selectClient(firstName, lastName, phoneNumber, productHistory) {
+      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${productHistory}`;
       document.getElementById('client-results').innerHTML = '';
     }
 
