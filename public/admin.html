@@ -52,18 +52,23 @@
       max-height: 200px;
       overflow-y: auto;
       margin: 0;
+      border: 1px solid #ccc;
+      background-color: white;
+      z-index: 100;
+      position: absolute;
+      width: 60%;
+      left: 20%;
     }
 
     #client-results li {
       padding: 10px;
-      margin: 5px 0;
-      background: #f1f1f1;
-      border: 1px solid #ccc;
+      margin: 0;
+      border-bottom: 1px solid #ddd;
       cursor: pointer;
     }
 
     #client-results li:hover {
-      background: #ddd;
+      background: #f1f1f1;
     }
 
     .tabs {
@@ -128,7 +133,7 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter Name, Phone, or Email" oninput="searchClients()" />
+      <input type="text" id="client-search" placeholder="Enter Name, Phone, or Email" oninput="debouncedSearch()" autocomplete="off" />
       <ul id="client-results"></ul>
     </div>
 
@@ -174,6 +179,13 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
+    let debounceTimeout;
+
+    function debouncedSearch() {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(searchClients, 300);
+    }
+
     async function searchClients() {
       const query = document.getElementById('client-search').value.trim();
       if (query === '') {
@@ -196,14 +208,14 @@
         .map(
           user =>
             `<li onclick="selectClient('${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
-              ${user.first_name} ${user.last_name} (${user.phone_number}, ${user.email})
+              ${user.first_name} ${user.last_name} (${user.phone_number ? user.phone_number : 'N/A'}, ${user.email ? user.email : 'N/A'})
             </li>`
         )
         .join('');
     }
 
     function selectClient(firstName, lastName, phoneNumber, email) {
-      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
+      document.getElementById('client-name').textContent = `${firstName} ${lastName} / ${phoneNumber || 'N/A'} / ${email || 'N/A'}`;
       document.getElementById('client-results').innerHTML = '';
     }
 
