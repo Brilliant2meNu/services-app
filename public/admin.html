@@ -70,22 +70,21 @@
   </div>
 
   <script>
-    // Initialize Supabase
-    const supabaseUrl = 'https://ovmdpupofhhudxhitoov.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    // Initialize Supabase Client
+    const supabase = supabase.createClient(
+      'https://ovmdpupofhhudxhitoov.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+    );
 
     let users = [];
 
-    // Load users from Supabase
+    // Load Users from Supabase
     async function loadUsers() {
       const tableBody = document.getElementById('user-table-body');
       const errorMessage = document.getElementById('error-message');
 
       try {
-        console.log('Fetching users from Supabase...');
         const { data, error } = await supabase.from('users').select('first_name, last_name, phone_number, email');
-
         if (error) {
           console.error('Error fetching users:', error);
           errorMessage.textContent = 'Error loading users. Please check your database.';
@@ -93,7 +92,6 @@
           return;
         }
 
-        console.log('Users fetched successfully:', data);
         users = data;
         renderUsers(users);
       } catch (err) {
@@ -103,7 +101,7 @@
       }
     }
 
-    // Render users into the table
+    // Render Users into the Table
     function renderUsers(data) {
       const tableBody = document.getElementById('user-table-body');
       if (data.length === 0) {
@@ -123,7 +121,7 @@
         .join('');
     }
 
-    // Filter users based on search input
+    // Filter Users Based on Search Input
     function filterUsers() {
       const query = document.getElementById('search-input').value.toLowerCase();
       const filteredUsers = users.filter(user =>
@@ -135,7 +133,7 @@
       renderUsers(filteredUsers);
     }
 
-    // Run connection test and load users on page load
+    // Load Users on Page Load
     window.onload = loadUsers;
   </script>
 </body>
