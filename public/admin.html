@@ -24,12 +24,26 @@
       color: #007BFF;
     }
 
+    .search-box {
+      margin-bottom: 20px;
+    }
+
     .search-box input {
-      width: 80%;
+      width: 60%;
       padding: 10px;
       margin: 10px 0;
       border: 1px solid #ccc;
       border-radius: 5px;
+    }
+
+    .search-box button {
+      padding: 10px 20px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-left: 10px;
     }
 
     .tabs {
@@ -94,7 +108,8 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <input type="text" id="client-search" placeholder="Enter First/Last Name" oninput="searchClients()" />
+      <input type="text" id="client-search" placeholder="Enter First/Last Name" />
+      <button onclick="searchClients()">OK</button>
       <ul id="client-results"></ul>
     </div>
 
