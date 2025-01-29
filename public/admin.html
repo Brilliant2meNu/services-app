@@ -37,26 +37,21 @@
     }
 
     .buttons {
-      margin: 20px 0;
+      margin-top: 20px;
     }
 
     .buttons button {
       padding: 10px 20px;
-      margin: 5px;
       border: none;
-      border-radius: 5px;
       background: #007BFF;
       color: white;
       cursor: pointer;
+      border-radius: 5px;
+      margin: 5px;
     }
 
-    .buttons button:hover {
-      background: #0056b3;
-    }
-
-    #client-details {
-      margin-top: 20px;
-      font-size: 18px;
+    #client-results {
+      margin-top: 10px;
       color: #555;
     }
   </style>
@@ -68,30 +63,34 @@
     <!-- Client Search -->
     <div class="search-box">
       <h2>Client Search</h2>
-      <select id="client-select">
-        <option value="">Loading clients...</option>
+      <select id="client-dropdown">
+        <option>Loading clients...</option>
       </select>
-      <div class="buttons">
-        <button onclick="confirmSelection()">Confirm</button>
-        <button onclick="cancelSelection()">Cancel</button>
-      </div>
+    </div>
+
+    <div class="buttons">
+      <button onclick="confirmSelection()">Confirm</button>
+      <button onclick="cancelSelection()">Cancel</button>
     </div>
 
     <!-- Client Details -->
-    <div id="client-details">
-      <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
+    <div id="client-results">
+      <h3 id="selected-client">Selected Client: None</h3>
     </div>
   </div>
 
   <script>
-    // Initialize Supabase Client
+    // Supabase Initialization
     const supabase = supabase.createClient(
       'https://ovmdpupofhhudxhitoov.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
     );
 
-    // Populate Client Dropdown
+    // Fetch Clients from the Supabase "users" Table
     async function fetchClients() {
+      const dropdown = document.getElementById('client-dropdown');
+      dropdown.innerHTML = '<option>Loading clients...</option>';
+
       const { data, error } = await supabase
         .from('users')
         .select('id, first_name, last_name, phone_number, email')
@@ -99,45 +98,40 @@
 
       if (error) {
         console.error('Error fetching clients:', error);
-        alert('Failed to load clients.');
+        dropdown.innerHTML = '<option>Error loading clients</option>';
         return;
       }
 
-      const clientSelect = document.getElementById('client-select');
-      clientSelect.innerHTML = '<option value="">Select a client</option>'; // Reset options
+      if (data.length === 0) {
+        dropdown.innerHTML = '<option>No clients found</option>';
+        return;
+      }
 
-      data.forEach(client => {
-        const option = document.createElement('option');
-        option.value = JSON.stringify(client);
-        option.textContent = `${client.first_name} ${client.last_name} (${client.phone_number || 'No phone'}, ${client.email || 'No email'})`;
-        clientSelect.appendChild(option);
-      });
+      // Populate Dropdown
+      dropdown.innerHTML = data
+        .map(
+          client =>
+            `<option value="${client.id}">${client.first_name} ${client.last_name} (${client.phone_number || 'No phone'}, ${client.email || 'No email'})</option>`
+        )
+        .join('');
     }
 
-    // Confirm Client Selection
+    // Confirm Selection
     function confirmSelection() {
-      const clientSelect = document.getElementById('client-select');
-      const selectedClient = clientSelect.value;
-
-      if (!selectedClient) {
-        alert('Please select a client.');
-        return;
-      }
-
-      const client = JSON.parse(selectedClient);
-      document.getElementById('client-name').textContent = `${client.first_name} ${client.last_name} / ${client.phone_number || 'No phone'} / ${client.email || 'No email'}`;
-      alert('Client selected successfully!');
+      const dropdown = document.getElementById('client-dropdown');
+      const selectedOption = dropdown.options[dropdown.selectedIndex];
+      const selectedClient = selectedOption.text;
+      document.getElementById('selected-client').textContent = `Selected Client: ${selectedClient}`;
     }
 
-    // Cancel Client Selection
+    // Cancel Selection
     function cancelSelection() {
-      const clientSelect = document.getElementById('client-select');
-      clientSelect.value = '';
-      document.getElementById('client-name').textContent = 'CLIENT’S NAME / PRODUCT HISTORY';
-      alert('Selection canceled.');
+      const dropdown = document.getElementById('client-dropdown');
+      dropdown.selectedIndex = 0; // Reset to the first option
+      document.getElementById('selected-client').textContent = 'Selected Client: None';
     }
 
-    // Fetch clients on page load
+    // Initialize the Dropdown on Page Load
     window.onload = fetchClients;
   </script>
 </body>
