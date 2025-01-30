@@ -1,41 +1,31 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
-<script>
-  const supabase = supabase.createClient(
-    'https://ovmdpupofhhudxhitoov.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-  );
+import { createClient } from "@supabase/supabase-js";
 
-  const loginForm = document.getElementById("loginForm");
-  const errorElement = document.getElementById("error");
+const supabase = createClient(
+  "https://ovmdpupofhhudxhitoov.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+);
 
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("email", email)
-        .eq("password", password);
+  const { email, password } = req.body;
 
-      if (error || data.length === 0) {
-        errorElement.textContent = "Invalid email or password.";
-        return;
-      }
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .eq("password", password);
 
-      const userRole = data[0].role;
-      if (userRole === "admin") {
-        window.location.href = "/admin-dashboard.html";
-      } else if (userRole === "premium") {
-        window.location.href = "/premium-dashboard.html";
-      } else {
-        window.location.href = "/guest-dashboard.html";
-      }
-    } catch (err) {
-      console.error(err);
-      errorElement.textContent = "An error occurred. Please try again.";
+    if (error || data.length === 0) {
+      return res.status(401).json({ error: "Invalid email or password" });
     }
-  });
-</script>
+
+    res.status(200).json({ role: data[0].role });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+}
