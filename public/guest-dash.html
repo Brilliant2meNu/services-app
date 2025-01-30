@@ -4,59 +4,199 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guest Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
       background-color: #f8f9fa;
     }
 
     .container {
-      max-width: 600px;
-      margin: 0 auto;
+      margin: 20px auto;
+      text-align: center;
       padding: 20px;
-      background: white;
       border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
+      max-width: 800px;
     }
 
     h1, h2 {
       color: #007BFF;
     }
 
-    .navigation-links a {
-      text-decoration: none;
-      margin: 10px;
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+
+    .tabs button {
+      padding: 10px 20px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: #f8f9fa;
+      cursor: pointer;
+      font-weight: bold;
       color: #007BFF;
     }
 
-    .navigation-links a:hover {
-      color: #0056b3;
+    .tabs button.active {
+      border-bottom: 2px solid #007BFF;
+    }
+
+    .tab-content {
+      display: none;
+      text-align: left;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #fff;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .profile-input {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    .profile-input input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
+    }
+
+    .profile-buttons {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .profile-buttons button {
+      padding: 10px 20px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 5px;
+    }
+
+    .qr-generator input {
+      padding: 10px;
+      width: 80%;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .qr-generator button {
+      padding: 10px 20px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .qr-code img {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Guest Dashboard</h1>
-    <section>
-      <h2>Chat Assistant</h2>
-      <div>No interactions yet.</div>
-    </section>
 
-    <section>
-      <h2>Service Recommendations</h2>
-      <ul>
-        <li>Acne Facial</li>
-        <li>Hydrojelly Facial</li>
-        <li>Deep Pore Cleansing</li>
-      </ul>
-    </section>
+    <!-- Tabs Section -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
+      <button class="tab-button" onclick="switchTab('profile')">Profile</button>
+      <button class="tab-button" onclick="switchTab('qr-generator')">QR Code</button>
+    </div>
 
-    <div class="navigation-links">
-      <a href="/faq.html">FAQ</a>
-      <a href="/delete-info.html">Delete My Info</a>
-      <a href="/index.html">Home</a>
+    <!-- Chat History -->
+    <div class="tab-content active" id="chat-history">
+      <h3>Chat History</h3>
+      <p>View your past interactions with the assistant.</p>
+      <button>Refresh</button>
+    </div>
+
+    <!-- Profile Management -->
+    <div class="tab-content" id="profile">
+      <h3>Manage Profile</h3>
+      <div class="profile-input">
+        <input type="text" id="guest-first-name" placeholder="First Name" />
+        <input type="text" id="guest-last-name" placeholder="Last Name" />
+        <input type="email" id="guest-email" placeholder="Email" />
+        <input type="text" id="guest-phone-number" placeholder="Phone Number" />
+        <input type="password" id="guest-password" placeholder="Password" />
+      </div>
+      <div class="profile-buttons">
+        <button onclick="updateGuestProfile()">Save</button>
+      </div>
+    </div>
+
+    <!-- QR Code Generator -->
+    <div class="tab-content" id="qr-generator">
+      <h3>QR Code Generator</h3>
+      <input type="text" id="qr-url" placeholder="Enter URL" />
+      <button onclick="generateQRCode()">Generate QR Code</button>
+      <div class="qr-code" id="qr-code"></div>
     </div>
   </div>
+
+  <script>
+    let supabase = window.supabase.createClient(
+      "https://ovmdpupofhhudxhitoov.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+    );
+
+    async function updateGuestProfile() {
+      const userId = localStorage.getItem("userId"); // Retrieve stored user ID
+      if (!userId) {
+        alert("User not found!");
+        return;
+      }
+
+      const updatedUser = {
+        first_name: document.getElementById("guest-first-name").value.trim(),
+        last_name: document.getElementById("guest-last-name").value.trim(),
+        email: document.getElementById("guest-email").value.trim(),
+        phone_number: document.getElementById("guest-phone-number").value.trim(),
+        password: document.getElementById("guest-password").value.trim()
+      };
+
+      try {
+        const { error } = await supabase.from("users").update(updatedUser).eq("id", userId);
+        if (error) throw error;
+        alert("Profile updated successfully!");
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        alert("Failed to update profile.");
+      }
+    }
+
+    function generateQRCode() {
+      const qrURL = document.getElementById("qr-url").value.trim();
+      if (!qrURL) {
+        alert("Please enter a URL!");
+        return;
+      }
+      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
+    }
+  </script>
 </body>
 </html>
