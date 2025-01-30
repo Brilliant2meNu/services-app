@@ -64,13 +64,20 @@
   </div>
 
   <script>
-    // Initialize Supabase Client
-    const supabase = supabase.createClient(
-      'https://ovmdpupofhhudxhitoov.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-    );
+    let supabase; // Declare Supabase globally
+    let users = []; // Declare users globally
 
-    let users = [];
+    // Initialize Supabase Client
+    try {
+      supabase = supabase.createClient(
+        'https://ovmdpupofhhudxhitoov.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+      );
+    } catch (error) {
+      console.error('Failed to initialize Supabase:', error);
+      document.getElementById('error-message').textContent = 'Failed to initialize Supabase. Check console for details.';
+      return; // Stop execution if initialization fails
+    }
 
     // Fetch Users from Supabase
     async function loadUsers() {
@@ -79,22 +86,21 @@
       try {
         const { data, error } = await supabase.from("users").select("*");
         if (error) {
-          errorElement.textContent = "Failed to load users.";
-          console.error(error);
-          return;
+          throw new Error("Failed to fetch users: " + error.message);
         }
-        users = data;
+        users = data; // Assign users to the global variable
         renderUsers(users);
       } catch (err) {
-        errorElement.textContent = "Unexpected error occurred.";
         console.error(err);
+        errorElement.textContent = "Error loading users. Please try again.";
+        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
       }
     }
 
     // Render Users to the Table
     function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         tableBody.innerHTML = "<tr><td colspan='4'>No users found.</td></tr>";
         return;
       }
@@ -102,10 +108,10 @@
         .map(
           user => `
           <tr>
-            <td>${user.first_name}</td>
-            <td>${user.last_name}</td>
-            <td>${user.phone_number}</td>
-            <td>${user.email}</td>
+            <td>${user.first_name || "N/A"}</td>
+            <td>${user.last_name || "N/A"}</td>
+            <td>${user.phone_number || "N/A"}</td>
+            <td>${user.email || "N/A"}</td>
           </tr>
         `
         )
@@ -114,6 +120,7 @@
 
     // Filter Users
     function filterUsers() {
+      if (!users || users.length === 0) return; // Prevent errors if users aren't loaded yet
       const query = document.getElementById("search-input").value.toLowerCase();
       const filtered = users.filter(user =>
         (user.first_name && user.first_name.toLowerCase().includes(query)) ||
@@ -125,7 +132,7 @@
     }
 
     // Load users on page load
-    loadUsers();
+    window.onload = loadUsers;
   </script>
 </body>
 </html>
