@@ -209,32 +209,23 @@
   </div>
 
   <script>
-    let supabase;
+    const supabaseUrl = 'https://ovmdpupofhhudxhitoov.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Use the provided anon key
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
     let users = [];
     let selectedUserId = null;
 
-    document.addEventListener("DOMContentLoaded", function () {
-      try {
-        supabase = window.supabase.createClient(
-          'https://ovmdpupofhhudxhitoov.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-        );
-        loadUsers();
-      } catch (error) {
-        document.getElementById('error-message').textContent = 'Failed to initialize Supabase. Check API key.';
-      }
-    });
+    document.addEventListener("DOMContentLoaded", () => loadUsers());
 
     async function loadUsers() {
       const tableBody = document.getElementById("user-table-body");
       try {
         const { data, error } = await supabase.from("users").select("*");
         if (error) throw error;
-
-        users = data || [];
+        users = data;
         renderUsers(users);
       } catch (err) {
-        console.error(err);
         tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
       }
     }
@@ -258,67 +249,66 @@
       document.getElementById("update-last-name").value = lastName || "";
       document.getElementById("update-email").value = email || "";
       document.getElementById("update-phone-number").value = phoneNumber || "";
-      document.getElementById("client-name").textContent = `${firstName} ${lastName}`;
     }
 
     async function saveOrAddUser() {
-      const user = {
+      const newUser = {
         first_name: document.getElementById("update-first-name").value.trim(),
         last_name: document.getElementById("update-last-name").value.trim(),
         email: document.getElementById("update-email").value.trim(),
         phone_number: document.getElementById("update-phone-number").value.trim(),
       };
-
       try {
         if (selectedUserId) {
-          await supabase.from("users").update(user).eq("id", selectedUserId);
+          const { error } = await supabase.from("users").update(newUser).eq("id", selectedUserId);
+          if (error) throw error;
           alert("User updated successfully!");
         } else {
-          await supabase.from("users").insert(user);
+          const { error } = await supabase.from("users").insert(newUser);
+          if (error) throw error;
           alert("New user added successfully!");
         }
         loadUsers();
-        clearFields();
       } catch (err) {
-        console.error(err);
         alert("Failed to save user.");
       }
     }
 
     async function deleteUser() {
-      if (!selectedUserId) return;
+      if (!selectedUserId) return alert("No user selected.");
       try {
-        await supabase.from("users").delete().eq("id", selectedUserId);
+        const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
+        if (error) throw error;
         alert("User deleted successfully!");
         loadUsers();
-        clearFields();
       } catch (err) {
-        console.error(err);
         alert("Failed to delete user.");
       }
     }
 
     function cancelUpdate() {
-      clearFields();
-    }
-
-    function clearFields() {
       selectedUserId = null;
       document.getElementById("update-first-name").value = "";
       document.getElementById("update-last-name").value = "";
       document.getElementById("update-email").value = "";
       document.getElementById("update-phone-number").value = "";
-      document.getElementById("client-name").textContent = "CLIENT’S NAME / PRODUCT HISTORY";
     }
 
     function filterUsers() {
       const query = document.getElementById("search-input").value.toLowerCase();
-      renderUsers(users.filter(user => 
+      const filtered = users.filter(user =>
         (user.first_name || "").toLowerCase().includes(query) ||
         (user.last_name || "").toLowerCase().includes(query) ||
         (user.phone_number || "").toLowerCase().includes(query) ||
         (user.email || "").toLowerCase().includes(query)
-      ));
+      );
+      renderUsers(filtered);
+    }
+
+    function generateQRCode() {
+      const qrURL = document.getElementById("qr-url").value.trim();
+      if (!qrURL) return alert("Please enter a URL!");
+      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
     }
 
     function switchTab(tabId) {
@@ -326,12 +316,6 @@
       document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
       document.getElementById(tabId).classList.add("active");
       document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
-    }
-
-    function generateQRCode() {
-      const qrURL = document.getElementById("qr-url").value.trim();
-      if (!qrURL) return;
-      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
     }
   </script>
 </body>
