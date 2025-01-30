@@ -217,19 +217,27 @@
       try {
         supabase = window.supabase.createClient(
           'https://ovmdpupofhhudxhitoov.supabase.co',
-          'YOUR_SUPABASE_API_KEY'
+          'YOUR_SUPABASE_KEY'
         );
         loadUsers();
       } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
         document.getElementById('error-message').textContent = 'Failed to initialize Supabase.';
       }
     });
 
     async function loadUsers() {
-      const { data, error } = await supabase.from("users").select("*");
-      if (error) console.error("Error loading users", error);
-      users = data || [];
-      renderUsers(users);
+      const tableBody = document.getElementById("user-table-body");
+      try {
+        const { data, error } = await supabase.from("users").select("*");
+        if (error) throw error;
+
+        users = data || [];
+        renderUsers(users);
+      } catch (err) {
+        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
+        console.error(err);
+      }
     }
 
     function renderUsers(data) {
@@ -254,54 +262,69 @@
     }
 
     async function saveOrAddUser() {
-      const newUser = {
+      const user = {
         first_name: document.getElementById("update-first-name").value.trim(),
         last_name: document.getElementById("update-last-name").value.trim(),
         email: document.getElementById("update-email").value.trim(),
         phone_number: document.getElementById("update-phone-number").value.trim(),
       };
-      const { error } = selectedUserId
-        ? await supabase.from("users").update(newUser).eq("id", selectedUserId)
-        : await supabase.from("users").insert(newUser);
-      if (error) alert("Error saving user");
-      else {
+
+      try {
+        if (selectedUserId) {
+          const { error } = await supabase.from("users").update(user).eq("id", selectedUserId);
+          if (error) throw error;
+          alert("User updated successfully!");
+        } else {
+          const { error } = await supabase.from("users").insert(user);
+          if (error) throw error;
+          alert("New user added successfully!");
+        }
         loadUsers();
         clearFields();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to save user.");
       }
     }
 
     async function deleteUser() {
-      if (!selectedUserId) return;
-      const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
-      if (error) alert("Error deleting user");
-      else {
+      if (!selectedUserId) return alert("No user selected.");
+      if (!confirm("Are you sure you want to delete this user?")) return;
+
+      try {
+        const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
+        if (error) throw error;
+        alert("User deleted successfully!");
         loadUsers();
         clearFields();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete user.");
       }
     }
 
     function clearFields() {
+      selectedUserId = null;
       document.getElementById("update-first-name").value = "";
       document.getElementById("update-last-name").value = "";
       document.getElementById("update-email").value = "";
       document.getElementById("update-phone-number").value = "";
-      selectedUserId = null;
-    }
-
-    function generateQRCode() {
-      const qrURL = document.getElementById("qr-url").value.trim();
-      if (!qrURL) return;
-      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
     }
 
     function filterUsers() {
       const query = document.getElementById("search-input").value.toLowerCase();
       renderUsers(users.filter(user =>
-        user.first_name.toLowerCase().includes(query) ||
-        user.last_name.toLowerCase().includes(query) ||
-        user.phone_number.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
+        (user.first_name || "").toLowerCase().includes(query) ||
+        (user.last_name || "").toLowerCase().includes(query) ||
+        (user.phone_number || "").toLowerCase().includes(query) ||
+        (user.email || "").toLowerCase().includes(query)
       ));
+    }
+
+    function generateQRCode() {
+      const qrURL = document.getElementById("qr-url").value.trim();
+      if (!qrURL) return alert("Please enter a URL!");
+      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
     }
 
     function switchTab(tabId) {
