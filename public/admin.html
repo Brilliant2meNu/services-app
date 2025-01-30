@@ -6,7 +6,7 @@
   <title>Admin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    /* CSS styles retained from the current code */
+    /* Styles retained */
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
@@ -185,74 +185,77 @@
     let users = [];
     let selectedUserId = null;
 
-    document.addEventListener("DOMContentLoaded", async function () {
+    document.addEventListener("DOMContentLoaded", async () => {
       try {
         supabase = window.supabase.createClient(
           'https://ovmdpupofhhudxhitoov.supabase.co',
           'YOUR_ANON_KEY'
         );
+        await loadUsers();
       } catch (error) {
-        console.error('Failed to initialize Supabase:', error);
-        return;
+        document.getElementById('error-message').textContent = "Failed to initialize Supabase.";
+        console.error(error);
       }
-
-      await loadUsers();
     });
 
     async function loadUsers() {
-      const tableBody = document.getElementById("user-table-body");
       try {
-        const { data, error } = await supabase.from("users").select("*");
+        const { data, error } = await supabase.from('users').select('*');
         if (error) throw error;
         users = data;
-        renderUsers(data);
-      } catch (err) {
-        console.error("Error loading users:", err);
-        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
+        renderUsers(users);
+      } catch (error) {
+        document.getElementById('error-message').textContent = "Failed to load users.";
+        console.error(error);
       }
     }
 
+    function renderUsers(data) {
+      const tableBody = document.getElementById('user-table-body');
+      tableBody.innerHTML = data.map(user => `
+        <tr onclick="selectClient(${user.id}, '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
+          <td>${user.first_name}</td>
+          <td>${user.last_name}</td>
+          <td>${user.phone_number}</td>
+          <td>${user.email}</td>
+        </tr>
+      `).join('') || "<tr><td colspan='4'>No users found.</td></tr>";
+    }
+
+    function selectClient(id, firstName, lastName, phoneNumber, email) {
+      selectedUserId = id;
+      document.getElementById("update-first-name").value = firstName;
+      document.getElementById("update-last-name").value = lastName;
+      document.getElementById("update-email").value = email;
+      document.getElementById("update-phone-number").value = phoneNumber;
+    }
+
     async function saveOrAddUser() {
-      const firstName = document.getElementById("update-first-name").value.trim();
-      const lastName = document.getElementById("update-last-name").value.trim();
-      const email = document.getElementById("update-email").value.trim();
-      const phoneNumber = document.getElementById("update-phone-number").value.trim();
-
-      if (!firstName || !lastName || !email || !phoneNumber) {
-        alert("All fields are required!");
-        return;
-      }
-
+      const newUser = {
+        first_name: document.getElementById("update-first-name").value.trim(),
+        last_name: document.getElementById("update-last-name").value.trim(),
+        email: document.getElementById("update-email").value.trim(),
+        phone_number: document.getElementById("update-phone-number").value.trim(),
+      };
       try {
-        const user = { first_name: firstName, last_name: lastName, email, phone_number: phoneNumber };
-
         if (selectedUserId) {
-          // Update existing user
-          const { error } = await supabase.from("users").update(user).eq("id", selectedUserId);
-          if (error) throw error;
+          await supabase.from('users').update(newUser).eq('id', selectedUserId);
           alert("User updated successfully!");
         } else {
-          // Insert new user
-          const { error } = await supabase.from("users").insert(user);
-          if (error) throw error;
+          await supabase.from('users').insert(newUser);
           alert("New user added successfully!");
         }
-
-        clearFields();
-        await loadUsers();
-      } catch (err) {
-        console.error("Error saving user:", err);
+        loadUsers();
+      } catch (error) {
+        console.error(error);
         alert("Failed to save user.");
       }
     }
 
-    function clearFields() {
-      document.getElementById("update-first-name").value = "";
-      document.getElementById("update-last-name").value = "";
-      document.getElementById("update-email").value = "";
-      document.getElementById("update-phone-number").value = "";
-      document.getElementById("client-name").textContent = "CLIENT’S NAME / PRODUCT HISTORY";
-      selectedUserId = null;
+    async function deleteUser() {
+      if (!selectedUserId) return;
+      await supabase.from('users').delete().eq('id', selectedUserId);
+      await loadUsers();
     }
   </script>
 </body>
