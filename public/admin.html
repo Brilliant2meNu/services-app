@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
     body {
@@ -37,11 +36,9 @@
       padding: 10px;
       margin: 10px 0;
       border-radius: 5px;
-      border: 1px solid #ccc;
     }
     .error {
       color: red;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -68,17 +65,10 @@
 
   <script>
     // Initialize Supabase Client
-    let supabase;
-    try {
-      supabase = supabase.createClient(
-        'https://ovmdpupofhhudxhitoov.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-      );
-      console.log('Supabase initialized successfully:', supabase);
-    } catch (error) {
-      console.error('Failed to initialize Supabase:', error);
-      document.getElementById('error-message').textContent = 'Failed to initialize Supabase. Check console for details.';
-    }
+    const supabase = supabase.createClient(
+      'https://ovmdpupofhhudxhitoov.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+    );
 
     let users = [];
 
@@ -86,25 +76,25 @@
     async function loadUsers() {
       const errorElement = document.getElementById("error-message");
       const tableBody = document.getElementById("user-table-body");
-      errorElement.textContent = ""; // Clear previous errors
       try {
         const { data, error } = await supabase.from("users").select("*");
         if (error) {
-          throw new Error("Failed to fetch users: " + error.message);
+          errorElement.textContent = "Failed to load users.";
+          console.error(error);
+          return;
         }
         users = data;
         renderUsers(users);
       } catch (err) {
+        errorElement.textContent = "Unexpected error occurred.";
         console.error(err);
-        errorElement.textContent = "Error loading users. Please try again.";
-        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
       }
     }
 
     // Render Users to the Table
     function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
-      if (!data || data.length === 0) {
+      if (data.length === 0) {
         tableBody.innerHTML = "<tr><td colspan='4'>No users found.</td></tr>";
         return;
       }
@@ -112,10 +102,10 @@
         .map(
           user => `
           <tr>
-            <td>${user.first_name || "N/A"}</td>
-            <td>${user.last_name || "N/A"}</td>
-            <td>${user.phone_number || "N/A"}</td>
-            <td>${user.email || "N/A"}</td>
+            <td>${user.first_name}</td>
+            <td>${user.last_name}</td>
+            <td>${user.phone_number}</td>
+            <td>${user.email}</td>
           </tr>
         `
         )
