@@ -144,8 +144,18 @@
       <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
     </div>
 
-    <!-- Credentials Tab -->
-    <div class="tab-content active" id="credentials">
+    <!-- Tabs Section -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
+      <button class="tab-button" onclick="switchTab('credentials')">Credentials</button>
+      <button class="tab-button" onclick="switchTab('usage')">Usage</button>
+    </div>
+    <div class="tab-content active" id="chat-history">
+      <h3>Chat History</h3>
+      <p>View and respond to client inquiries here.</p>
+      <button>Cancel</button> <button>Save</button>
+    </div>
+    <div class="tab-content" id="credentials">
       <h3>Credentials</h3>
       <div class="credentials-input">
         <input type="text" id="update-first-name" placeholder="First Name" />
@@ -165,12 +175,17 @@
         <button onclick="saveOrAddUser()">Save</button>
       </div>
     </div>
+    <div class="tab-content" id="usage">
+      <h3>Usage</h3>
+      <p>View client usage metrics and chatbot interactions.</p>
+      <button>Cancel</button> <button>Save</button>
+    </div>
   </div>
 
   <script>
     let supabase = window.supabase.createClient(
-      "YOUR_SUPABASE_URL",
-      "YOUR_SUPABASE_KEY"
+      "https://ovmdpupofhhudxhitoov.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
     let users = [];
     let selectedUserId = null;
@@ -217,7 +232,7 @@
       };
 
       const { data: existingUser } = await supabase.from("users").select("id").eq("phone_number", newUser.phone_number).maybeSingle();
-      if (existingUser) {
+      if (existingUser && (!selectedUserId || selectedUserId !== existingUser.id)) {
         alert("Phone number is already registered.");
         return;
       }
@@ -227,7 +242,32 @@
         : await supabase.from("users").insert(newUser);
 
       if (error) alert("Failed to save user.");
-      else loadUsers();
+      else {
+        loadUsers();
+        clearFields();
+      }
+    }
+
+    function cancelUpdate() {
+      clearFields();
+    }
+
+    function clearFields() {
+      document.getElementById("update-first-name").value = "";
+      document.getElementById("update-last-name").value = "";
+      document.getElementById("update-email").value = "";
+      document.getElementById("update-phone-number").value = "";
+      document.getElementById("update-password").value = "";
+      document.getElementById("update-role").value = "regular";
+      document.getElementById("client-name").textContent = "CLIENT’S NAME / PRODUCT HISTORY";
+      selectedUserId = null;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
     }
 
     document.addEventListener("DOMContentLoaded", loadUsers);
