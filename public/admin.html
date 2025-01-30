@@ -76,7 +76,6 @@
     } catch (error) {
       console.error('Failed to initialize Supabase:', error);
       document.getElementById('error-message').textContent = 'Failed to initialize Supabase. Check console for details.';
-      return; // Stop execution if initialization fails
     }
 
     // Fetch Users from Supabase
@@ -120,7 +119,6 @@
 
     // Filter Users
     function filterUsers() {
-      if (!users || users.length === 0) return; // Prevent errors if users aren't loaded yet
       const query = document.getElementById("search-input").value.toLowerCase();
       const filtered = users.filter(user =>
         (user.first_name && user.first_name.toLowerCase().includes(query)) ||
@@ -132,7 +130,9 @@
     }
 
     // Load users on page load
-    window.onload = loadUsers;
+    window.onload = function() {
+      loadUsers();
+    };
   </script>
 </body>
 </html>
