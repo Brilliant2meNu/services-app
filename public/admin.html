@@ -217,27 +217,19 @@
       try {
         supabase = window.supabase.createClient(
           'https://ovmdpupofhhudxhitoov.supabase.co',
-          'YOUR_SUPABASE_KEY_HERE'
+          'YOUR_SUPABASE_API_KEY'
         );
+        loadUsers();
       } catch (error) {
         document.getElementById('error-message').textContent = 'Failed to initialize Supabase.';
-        return;
       }
-
-      loadUsers();
     });
 
     async function loadUsers() {
-      const tableBody = document.getElementById("user-table-body");
-      try {
-        const { data, error } = await supabase.from("users").select("*");
-        if (error) throw error;
-
-        users = data || [];
-        renderUsers(users);
-      } catch {
-        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
-      }
+      const { data, error } = await supabase.from("users").select("*");
+      if (error) console.error("Error loading users", error);
+      users = data || [];
+      renderUsers(users);
     }
 
     function renderUsers(data) {
@@ -259,7 +251,6 @@
       document.getElementById("update-last-name").value = lastName || "";
       document.getElementById("update-email").value = email || "";
       document.getElementById("update-phone-number").value = phoneNumber || "";
-      document.getElementById("client-name").textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
     }
 
     async function saveOrAddUser() {
@@ -269,49 +260,32 @@
         email: document.getElementById("update-email").value.trim(),
         phone_number: document.getElementById("update-phone-number").value.trim(),
       };
-
-      try {
-        if (selectedUserId) {
-          const { error } = await supabase.from("users").update(newUser).eq("id", selectedUserId);
-          if (error) throw error;
-          alert("User updated successfully!");
-        } else {
-          const { error } = await supabase.from("users").insert(newUser);
-          if (error) throw error;
-          alert("New user added successfully!");
-        }
+      const { error } = selectedUserId
+        ? await supabase.from("users").update(newUser).eq("id", selectedUserId)
+        : await supabase.from("users").insert(newUser);
+      if (error) alert("Error saving user");
+      else {
         loadUsers();
         clearFields();
-      } catch {
-        alert("Failed to save user.");
       }
     }
 
     async function deleteUser() {
       if (!selectedUserId) return;
-
-      try {
-        const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
-        if (error) throw error;
-        alert("User deleted successfully!");
+      const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
+      if (error) alert("Error deleting user");
+      else {
         loadUsers();
         clearFields();
-      } catch {
-        alert("Failed to delete user.");
       }
     }
 
-    function cancelUpdate() {
-      clearFields();
-    }
-
     function clearFields() {
-      selectedUserId = null;
       document.getElementById("update-first-name").value = "";
       document.getElementById("update-last-name").value = "";
       document.getElementById("update-email").value = "";
       document.getElementById("update-phone-number").value = "";
-      document.getElementById("client-name").textContent = "CLIENT’S NAME / PRODUCT HISTORY";
+      selectedUserId = null;
     }
 
     function generateQRCode() {
@@ -322,11 +296,11 @@
 
     function filterUsers() {
       const query = document.getElementById("search-input").value.toLowerCase();
-      renderUsers(users.filter(user => 
-        (user.first_name || "").toLowerCase().includes(query) ||
-        (user.last_name || "").toLowerCase().includes(query) ||
-        (user.phone_number || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query)
+      renderUsers(users.filter(user =>
+        user.first_name.toLowerCase().includes(query) ||
+        user.last_name.toLowerCase().includes(query) ||
+        user.phone_number.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
       ));
     }
 
