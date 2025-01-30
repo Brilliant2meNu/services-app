@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
+  <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
     body {
@@ -68,15 +69,21 @@
     let users = []; // Declare users globally
 
     // Initialize Supabase Client
-    try {
-      supabase = supabase.createClient(
-        'https://ovmdpupofhhudxhitoov.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-      );
-    } catch (error) {
-      console.error('Failed to initialize Supabase:', error);
-      document.getElementById('error-message').textContent = 'Failed to initialize Supabase. Check console for details.';
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+      try {
+        supabase = window.supabase.createClient(
+          'https://ovmdpupofhhudxhitoov.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
+        );
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        document.getElementById('error-message').textContent =
+          'Failed to initialize Supabase. Check console for details.';
+        return; // Prevent further execution if Supabase fails
+      }
+
+      loadUsers(); // Load users once Supabase is initialized
+    });
 
     // Fetch Users from Supabase
     async function loadUsers() {
@@ -87,7 +94,7 @@
         if (error) {
           throw new Error("Failed to fetch users: " + error.message);
         }
-        users = data; // Assign users to the global variable
+        users = data || []; // Assign users to the global variable
         renderUsers(users);
       } catch (err) {
         console.error(err);
@@ -128,11 +135,6 @@
       );
       renderUsers(filtered);
     }
-
-    // Load users on page load
-    window.onload = function() {
-      loadUsers();
-    };
   </script>
 </body>
 </html>
