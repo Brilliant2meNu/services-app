@@ -188,17 +188,6 @@
       renderUsers(users);
     }
 
-    function filterUsers() {
-      const query = document.getElementById("search-input").value.toLowerCase();
-      const filtered = users.filter(user =>
-        (user.first_name || "").toLowerCase().includes(query) ||
-        (user.last_name || "").toLowerCase().includes(query) ||
-        (user.phone_number || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
-    }
-
     function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
       tableBody.innerHTML = data.length
@@ -210,6 +199,25 @@
             <td>${user.email}</td>
           </tr>`).join("")
         : "<tr><td colspan='4'>No users found.</td></tr>";
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
+
+      if (tabId === "chat-history") {
+        loadChatHistory();
+      }
+    }
+
+    function loadChatHistory() {
+      if (!selectedUserId) {
+        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
+        return;
+      }
+      // Fetch chat history logic goes here
     }
 
     function selectClient(id, firstName, lastName, phoneNumber, email, role) {
