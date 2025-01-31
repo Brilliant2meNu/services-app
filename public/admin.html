@@ -166,12 +166,21 @@
       const tableBody = document.getElementById("user-table-body");
       tableBody.innerHTML = data.map(user => `
         <tr onclick="selectUser('${user.id}')">
-          <td>${user.first_name}</td>
-          <td>${user.last_name}</td>
-          <td>${user.phone}</td>
-          <td>${user.email}</td>
+          <td>${user.first_name || 'N/A'}</td>
+          <td>${user.last_name || 'N/A'}</td>
+          <td>${user.phone || 'N/A'}</td>
+          <td>${user.email || 'N/A'}</td>
         </tr>
       `).join('');
+    }
+
+    function selectUser(userId) {
+      const user = users.find(user => user.id === userId);
+      if (!user) return;
+      document.getElementById('update-first-name').value = user.first_name || '';
+      document.getElementById('update-last-name').value = user.last_name || '';
+      document.getElementById('update-phone').value = user.phone || '';
+      document.getElementById('update-email').value = user.email || '';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
