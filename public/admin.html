@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +10,6 @@
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
     }
-
     .container {
       margin: 20px auto;
       text-align: center;
@@ -20,11 +18,9 @@
       background: white;
       max-width: 800px;
     }
-
     h1, h2 {
       color: #007BFF;
     }
-
     .search-box input {
       width: 60%;
       padding: 10px;
@@ -32,29 +28,24 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin: 20px 0;
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
     }
-
     th {
       background: #007bff;
       color: white;
     }
-
     .tabs {
       display: flex;
       justify-content: space-around;
       margin: 20px 0;
     }
-
     .tabs button {
       padding: 10px 20px;
       border: none;
@@ -64,11 +55,9 @@
       font-weight: bold;
       color: #007BFF;
     }
-
     .tabs button.active {
       border-bottom: 2px solid #007BFF;
     }
-
     .tab-content {
       display: none;
       text-align: left;
@@ -77,11 +66,9 @@
       border-radius: 5px;
       background: #fff;
     }
-
     .tab-content.active {
       display: block;
     }
-
     .credentials-input {
       display: flex;
       flex-direction: column;
@@ -89,18 +76,15 @@
       margin-top: 20px;
       align-items: center;
     }
-
     .credentials-input input, .credentials-input select {
       padding: 10px;
       width: 250px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
     .credentials-buttons {
       margin-top: 10px;
     }
-
     .credentials-buttons button {
       padding: 10px 20px;
       border: none;
@@ -110,7 +94,6 @@
       border-radius: 5px;
       margin: 0 5px;
     }
-
     .credentials-buttons button.delete {
       background: #FF4D4D;
     }
@@ -140,11 +123,6 @@
       </table>
     </div>
 
-    <!-- Client Details -->
-    <div id="client-details">
-      <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
-    </div>
-
     <!-- Tabs Section -->
     <div class="tabs">
       <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
@@ -153,9 +131,8 @@
     </div>
     <div class="tab-content active" id="chat-history">
       <h3>Chat History</h3>
-      <div id="chat-messages">Loading chat history...</div>
-      <textarea id="chat-input" placeholder="Type your message here..."></textarea>
-      <button onclick="sendMessage()">Send</button>
+      <textarea id="chat-input" placeholder="Type your response here..."></textarea>
+      <button onclick="sendMessage()">Send Response</button>
     </div>
     <div class="tab-content" id="credentials">
       <h3>Credentials</h3>
@@ -179,23 +156,16 @@
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
-      <div id="usage-metrics">Loading usage data...</div>
-    </div>
-
-    <!-- QR Code Generator -->
-    <div class="qr-generator">
-      <h2>QR Code Generation</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
-      <button onclick="generateQRCode()">Generate QR Code</button>
-      <div id="qr-code"></div>
+      <p>Loading usage data...</p>
     </div>
   </div>
 
   <script>
-    let supabase = window.supabase.createClient(
+    const supabase = window.supabase.createClient(
       "https://ovmdpupofhhudxhitoov.supabase.co",
-      "YOUR_API_KEY"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
+
     let users = [];
     let selectedUserId = null;
 
@@ -203,7 +173,7 @@
       const { data, error } = await supabase.from("users").select("*");
       if (error) {
         console.error("Error loading users:", error);
-        document.getElementById("user-table-body").innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
+        document.getElementById("user-table-body").innerHTML = "<tr><td colspan='4'>Error loading users...</td></tr>";
         return;
       }
       users = data || [];
@@ -214,7 +184,7 @@
       const tableBody = document.getElementById("user-table-body");
       tableBody.innerHTML = data.length
         ? data.map(user => `
-          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}', '${user.password}', '${user.role}')">
+          <tr onclick="selectUser('${user.id}')">
             <td>${user.first_name || "N/A"}</td>
             <td>${user.last_name || "N/A"}</td>
             <td>${user.phone_number || "N/A"}</td>
@@ -223,15 +193,10 @@
         : "<tr><td colspan='4'>No users found.</td></tr>";
     }
 
-    function selectClient(id, firstName, lastName, phoneNumber, email, password, role) {
-      selectedUserId = id;
-      document.getElementById("update-first-name").value = firstName || "";
-      document.getElementById("update-last-name").value = lastName || "";
-      document.getElementById("update-email").value = email || "";
-      document.getElementById("update-phone-number").value = phoneNumber || "";
-      document.getElementById("update-password").value = password || "";
-      document.getElementById("update-role").value = role || "regular";
-      document.getElementById("client-name").textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
+    async function sendMessage() {
+      const message = document.getElementById("chat-input").value;
+      if (!message) return alert("Message cannot be empty.");
+      alert(`Message sent: ${message}`);
     }
 
     function switchTab(tabId) {
