@@ -80,6 +80,10 @@
     .tab-content.active {
       display: block;
     }
+
+    .credentials-buttons button {
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
@@ -128,7 +132,17 @@
       <input type="text" id="update-last-name" placeholder="Last Name">
       <input type="text" id="update-phone" placeholder="Phone Number">
       <input type="email" id="update-email" placeholder="Email">
-      <button onclick="updateUser()">Save</button>
+      <input type="password" id="update-password" placeholder="Password">
+      <select id="update-role">
+        <option value="regular">Regular</option>
+        <option value="premium">Premium</option>
+        <option value="admin">Admin</option>
+      </select>
+      <div class="credentials-buttons">
+        <button onclick="deleteUser()">Delete User</button>
+        <button onclick="clearFields()">Cancel</button>
+        <button onclick="saveOrAddUser()">Save</button>
+      </div>
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
@@ -151,13 +165,7 @@
     );
 
     let users = [];
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`button[onclick="switchTab('${tabId}')"]`).classList.add('active');
-    }
+    let selectedUserId = null;
 
     async function loadUsers() {
       const { data, error } = await supabase.from('users').select('*');
@@ -165,7 +173,11 @@
         console.error("Error loading users:", error);
         return;
       }
-      users = data; // Store users in the array
+      users = data; 
+      renderUsers(users);
+    }
+
+    function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
       tableBody.innerHTML = data.map(user => `
         <tr onclick="selectUser('${user.id}')">
@@ -177,18 +189,81 @@
       `).join('');
     }
 
-    function selectUser(userId) {
-      const user = users.find(user => user.id === userId);
-      if (!user) return;
-      document.getElementById('update-first-name').value = user.first_name || '';
-      document.getElementById('update-last-name').value = user.last_name || '';
-      document.getElementById('update-phone').value = user.phone || '';
-      document.getElementById('update-email').value = user.email || '';
+    function filterUsers() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = users.filter(user => 
+        (user.first_name || "").toLowerCase().includes(query) ||
+        (user.last_name || "").toLowerCase().includes(query) ||
+        (user.phone || "").toLowerCase().includes(query) ||
+        (user.email || "").toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function selectUser(id) {
+      const user = users.find(user => user.id === id);
+      if (!user) return;
+      selectedUserId = id;
+      document.getElementById("update-first-name").value = user.first_name || '';
+      document.getElementById("update-last-name").value = user.last_name || '';
+      document.getElementById("update-phone").value = user.phone || '';
+      document.getElementById("update-email").value = user.email || '';
+      document.getElementById("update-password").value = '';
+      document.getElementById("update-role").value = user.role || 'regular';
+      document.getElementById("client-name").textContent = `${user.first_name} ${user.last_name}`;
+    }
+
+    async function saveOrAddUser() {
+      const user = {
+        first_name: document.getElementById("update-first-name").value,
+        last_name: document.getElementById("update-last-name").value,
+        phone: document.getElementById("update-phone").value,
+        email: document.getElementById("update-email").value,
+        password: document.getElementById("update-password").value,
+        role: document.getElementById("update-role").value
+      };
+      if (selectedUserId) {
+        await supabase.from("users").update(user).eq("id", selectedUserId);
+      } else {
+        await supabase.from("users").insert(user);
+      }
       loadUsers();
-    });
+      clearFields();
+    }
+
+    async function deleteUser() {
+      if (!selectedUserId) return;
+      await supabase.from("users").delete().eq("id", selectedUserId);
+      loadUsers();
+      clearFields();
+    }
+
+    function clearFields() {
+      document.getElementById("update-first-name").value = '';
+      document.getElementById("update-last-name").value = '';
+      document.getElementById("update-phone").value = '';
+      document.getElementById("update-email").value = '';
+      document.getElementById("update-password").value = '';
+      document.getElementById("update-role").value = 'regular';
+      document.getElementById("client-name").textContent = 'CLIENT’S NAME / PRODUCT HISTORY';
+      selectedUserId = null;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`button[onclick="switchTab('${tabId}')"]`).classList.add('active');
+    }
+
+    function generateQRCode() {
+      const url = document.getElementById("qr-url").value.trim();
+      if (!url) return alert("Please enter a valid URL.");
+      const qrCodeDiv = document.getElementById("qr-code");
+      qrCodeDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(url)}&size=200x200" alt="QR Code" />`;
+    }
+
+    document.addEventListener("DOMContentLoaded", loadUsers);
   </script>
 </body>
 </html>
