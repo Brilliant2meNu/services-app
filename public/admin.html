@@ -125,6 +125,11 @@
     .qr-code img {
       margin-top: 20px;
     }
+
+    #usage-metrics ul {
+      list-style-type: none;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
@@ -192,8 +197,7 @@
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
-      <p>View client usage metrics and chatbot interactions.</p>
-      <button>Cancel</button> <button>Save</button>
+      <div id="usage-metrics">No data available.</div>
     </div>
 
     <!-- QR Code Generator -->
@@ -210,6 +214,7 @@
       "https://ovmdpupofhhudxhitoov.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
+
     let selectedUserId = null;
 
     async function loadUsers() {
@@ -265,11 +270,47 @@
       }
     }
 
+    async function loadUsageMetrics() {
+      const usageContainer = document.getElementById("usage-metrics");
+      usageContainer.innerHTML = "Loading usage metrics...";
+
+      try {
+        // Fetch Active Users
+        const { data: activeUsersData } = await supabase.rpc("active_users");
+        const activeUsers = activeUsersData ? activeUsersData[0]?.active_users : 0;
+
+        // Fetch Frequent Users
+        const { data: frequentUsersData } = await supabase.rpc("frequent_users");
+        const frequentUsers = frequentUsersData || [];
+
+        // Fetch Bot-to-User Message Ratio
+        const { data: botRatioData } = await supabase.rpc("bot_to_user_ratio");
+        const botRatio = botRatioData ? botRatioData[0]?.bot_to_user_ratio : "N/A";
+
+        // Populate the Metrics
+        usageContainer.innerHTML = `
+          <h4>Metrics:</h4>
+          <p><strong>Active Users:</strong> ${activeUsers}</p>
+          <h4>Frequent Users:</h4>
+          <ul>
+            ${frequentUsers.map(user => `<li>${user.first_name} ${user.last_name}: ${user.total_interactions} interactions</li>`).join("")}
+          </ul>
+          <p><strong>Bot-to-User Message Ratio:</strong> ${botRatio}</p>
+        `;
+      } catch (error) {
+        console.error("Error loading usage metrics:", error);
+        usageContainer.innerHTML = "Failed to load usage metrics.";
+      }
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
       document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
       document.getElementById(tabId).classList.add("active");
       document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
+
+      // Load Usage Metrics when "Usage" Tab is Clicked
+      if (tabId === "usage") loadUsageMetrics();
     }
 
     function generateQRCode() {
