@@ -121,15 +121,6 @@
       padding: 10px;
       margin-top: 10px;
     }
-
-    .qr-code img {
-      margin-top: 20px;
-    }
-
-    #usage-metrics ul {
-      list-style-type: none;
-      padding: 0;
-    }
   </style>
 </head>
 <body>
@@ -156,27 +147,9 @@
       </table>
     </div>
 
-    <!-- Client Details -->
-    <div id="client-details">
-      <h2 id="client-name">CLIENT’S NAME / PRODUCT HISTORY</h2>
-    </div>
-
-    <!-- Tabs Section -->
-    <div class="tabs">
-      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
-      <button class="tab-button" onclick="switchTab('credentials')">Credentials</button>
-      <button class="tab-button" onclick="switchTab('usage')">Usage</button>
-    </div>
-    <div class="tab-content active" id="chat-history">
-      <h3>Chat History</h3>
-      <div class="chat-container" id="chat-container">
-        <p>Loading chat history...</p>
-      </div>
-      <textarea id="chat-response" placeholder="Type your response here..." style="width: 100%; margin-top: 10px;"></textarea>
-      <button onclick="sendMessage()">Send Response</button>
-    </div>
+    <!-- Credentials Tab -->
     <div class="tab-content" id="credentials">
-      <h3>Credentials</h3>
+      <h3>Manage User Credentials</h3>
       <div class="credentials-input">
         <input type="text" id="update-first-name" placeholder="First Name" />
         <input type="text" id="update-last-name" placeholder="Last Name" />
@@ -195,18 +168,6 @@
         <button onclick="saveOrAddUser()">Save</button>
       </div>
     </div>
-    <div class="tab-content" id="usage">
-      <h3>Usage</h3>
-      <div id="usage-metrics">No data available.</div>
-    </div>
-
-    <!-- QR Code Generator -->
-    <div class="qr-generator">
-      <h2>QR Code Generation</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
-      <button onclick="generateQRCode()">Generate QR Code</button>
-      <div class="qr-code" id="qr-code"></div>
-    </div>
   </div>
 
   <script>
@@ -219,7 +180,7 @@
 
     async function loadUsers() {
       const { data, error } = await supabase.from("users").select("*");
-      if (error) console.error(error);
+      if (error) console.error("Error loading users:", error);
       renderUsers(data || []);
     }
 
@@ -236,90 +197,67 @@
         : "<tr><td colspan='4'>No users found.</td></tr>";
     }
 
-    async function loadChatHistory() {
-      if (!selectedUserId) {
-        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
-        return;
-      }
-
-      const { data, error } = await supabase.from("chats").select("*").eq("user_id", selectedUserId).order("created_at", { ascending: true });
-      const container = document.getElementById("chat-container");
-
-      if (error) {
-        console.error(error);
-        container.innerHTML = "<p>Error loading chat history.</p>";
-        return;
-      }
-
-      container.innerHTML = data.length
-        ? data.map(chat => `<p><strong>${chat.created_at}:</strong> ${chat.message}</p>`).join("")
-        : "<p>No chat history available.</p>";
+    function selectClient(id, firstName, lastName, phoneNumber, email) {
+      selectedUserId = id;
+      document.getElementById("update-first-name").value = firstName || "";
+      document.getElementById("update-last-name").value = lastName || "";
+      document.getElementById("update-email").value = email || "";
+      document.getElementById("update-phone-number").value = phoneNumber || "";
     }
 
-    async function sendMessage() {
-      const message = document.getElementById("chat-response").value.trim();
-      if (!message || !selectedUserId) return alert("No message or client selected.");
+    async function saveOrAddUser() {
+      const user = {
+        first_name: document.getElementById("update-first-name").value,
+        last_name: document.getElementById("update-last-name").value,
+        email: document.getElementById("update-email").value,
+        phone_number: document.getElementById("update-phone-number").value,
+        password: document.getElementById("update-password").value,
+        role: document.getElementById("update-role").value
+      };
 
-      const { error } = await supabase.from("chats").insert([{ user_id: selectedUserId, message }]);
-      if (error) {
-        console.error(error);
-        alert("Failed to send message.");
+      if (selectedUserId) {
+        const { error } = await supabase.from("users").update(user).eq("id", selectedUserId);
+        if (error) return alert("Failed to update user.");
+        alert("User updated successfully!");
       } else {
-        document.getElementById("chat-response").value = "";
-        loadChatHistory();
+        const { error } = await supabase.from("users").insert([user]);
+        if (error) return alert("Failed to add user.");
+        alert("User added successfully!");
       }
+      loadUsers();
+      clearFields();
     }
 
-    async function loadUsageMetrics() {
-      const usageContainer = document.getElementById("usage-metrics");
-      usageContainer.innerHTML = "Loading usage metrics...";
-
-      try {
-        // Fetch Active Users
-        const { data: activeUsersData } = await supabase.rpc("active_users");
-        const activeUsers = activeUsersData ? activeUsersData[0]?.active_users : 0;
-
-        // Fetch Frequent Users
-        const { data: frequentUsersData } = await supabase.rpc("frequent_users");
-        const frequentUsers = frequentUsersData || [];
-
-        // Fetch Bot-to-User Message Ratio
-        const { data: botRatioData } = await supabase.rpc("bot_to_user_ratio");
-        const botRatio = botRatioData ? botRatioData[0]?.bot_to_user_ratio : "N/A";
-
-        // Populate the Metrics
-        usageContainer.innerHTML = `
-          <h4>Metrics:</h4>
-          <p><strong>Active Users:</strong> ${activeUsers}</p>
-          <h4>Frequent Users:</h4>
-          <ul>
-            ${frequentUsers.map(user => `<li>${user.first_name} ${user.last_name}: ${user.total_interactions} interactions</li>`).join("")}
-          </ul>
-          <p><strong>Bot-to-User Message Ratio:</strong> ${botRatio}</p>
-        `;
-      } catch (error) {
-        console.error("Error loading usage metrics:", error);
-        usageContainer.innerHTML = "Failed to load usage metrics.";
-      }
+    async function deleteUser() {
+      if (!selectedUserId) return alert("No user selected.");
+      const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
+      if (error) return alert("Failed to delete user.");
+      alert("User deleted successfully!");
+      loadUsers();
+      clearFields();
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
-      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
-
-      // Load Usage Metrics when "Usage" Tab is Clicked
-      if (tabId === "usage") loadUsageMetrics();
+    function cancelUpdate() {
+      clearFields();
     }
 
-    function generateQRCode() {
-      const qrURL = document.getElementById("qr-url").value.trim();
-      if (!qrURL) {
-        alert("Please enter a URL!");
-        return;
-      }
-      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
+    function clearFields() {
+      document.getElementById("update-first-name").value = "";
+      document.getElementById("update-last-name").value = "";
+      document.getElementById("update-email").value = "";
+      document.getElementById("update-phone-number").value = "";
+      document.getElementById("update-password").value = "";
+      document.getElementById("update-role").value = "regular";
+      selectedUserId = null;
+    }
+
+    function filterUsers() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const rows = Array.from(document.getElementById("user-table-body").rows);
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? "" : "none";
+      });
     }
 
     document.addEventListener("DOMContentLoaded", () => {
