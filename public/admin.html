@@ -152,14 +152,15 @@
         </select>
       </div>
       <div class="credentials-buttons">
-        <button onclick="deleteUser()">Delete User</button>
-        <button onclick="clearFields()">Clear</button>
+        <button onclick="deleteUser()" class="delete">Delete User</button>
+        <button onclick="cancelUpdate()">Cancel</button>
         <button onclick="saveOrAddUser()">Save</button>
       </div>
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
-      <p>Usage metrics will appear here.</p>
+      <p>View client usage metrics and chatbot interactions.</p>
+      <button>Cancel</button> <button>Save</button>
     </div>
 
     <!-- QR Code Generator -->
@@ -167,68 +168,67 @@
       <h2>QR Code Generation</h2>
       <input type="text" id="qr-url" placeholder="Enter URL Destination" />
       <button onclick="generateQRCode()">Generate QR Code</button>
-      <div id="qr-code"></div>
+      <div class="qr-code" id="qr-code"></div>
     </div>
   </div>
 
   <script>
-    const SUPABASE_URL = "https://ovmdpupofhhudxhitoov.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM";
+    let supabase = window.supabase.createClient(
+      "https://ovmdpupofhhudxhitoov.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+    );
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let users = [];
+    let selectedUserId = null;
 
     async function loadUsers() {
       const { data, error } = await supabase.from("users").select("*");
-      if (error) {
-        console.error("Error loading users:", error);
-        document.getElementById("user-table-body").innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
-        return;
-      }
-      renderUsers(data);
+      if (error) console.error("Error loading users:", error);
+      users = data || [];
+      renderUsers(users);
     }
 
-    function renderUsers(users) {
+    function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
-      if (!users.length) {
-        tableBody.innerHTML = "<tr><td colspan='4'>No users found.</td></tr>";
+      tableBody.innerHTML = data.length
+        ? data.map(user => `
+          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}', '${user.role}')">
+            <td>${user.first_name}</td>
+            <td>${user.last_name}</td>
+            <td>${user.phone_number}</td>
+            <td>${user.email}</td>
+          </tr>`).join("")
+        : "<tr><td colspan='4'>No users found.</td></tr>";
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
+
+      if (tabId === "chat-history") {
+        loadChatHistory();
+      }
+    }
+
+    function loadChatHistory() {
+      if (!selectedUserId) {
+        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
         return;
       }
-      tableBody.innerHTML = users.map(user => `
-        <tr onclick="selectUser('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}', '${user.role}')">
-          <td>${user.first_name}</td>
-          <td>${user.last_name}</td>
-          <td>${user.phone_number}</td>
-          <td>${user.email}</td>
-        </tr>
-      `).join("");
+      // Fetch chat history logic goes here
     }
 
-    function filterUsers() {
-      const query = document.getElementById("search-input").value.toLowerCase();
-      const filtered = users.filter(user =>
-        user.first_name.toLowerCase().includes(query) ||
-        user.last_name.toLowerCase().includes(query) ||
-        user.phone_number.includes(query) ||
-        user.email.toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
+    function selectClient(id, firstName, lastName, phoneNumber, email, role) {
+      selectedUserId = id;
+      document.getElementById("update-first-name").value = firstName;
+      document.getElementById("update-last-name").value = lastName;
+      document.getElementById("update-email").value = email;
+      document.getElementById("update-phone-number").value = phoneNumber;
+      document.getElementById("update-role").value = role;
+      document.getElementById("client-name").textContent = `${firstName} ${lastName}`;
     }
-
-    async function saveOrAddUser() {
-      const user = {
-        first_name: document.getElementById("update-first-name").value,
-        last_name: document.getElementById("update-last-name").value,
-        email: document.getElementById("update-email").value,
-        phone_number: document.getElementById("update-phone-number").value,
-        role: document.getElementById("update-role").value,
-      };
-    }
-
-    function clearFields() {
-      document.getElementById("update-first-name").value = "";
-    }
-
-    async function deleteUser() {}
 
     document.addEventListener("DOMContentLoaded", loadUsers);
   </script>
