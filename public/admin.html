@@ -113,6 +113,18 @@
     .credentials-buttons button.delete {
       background: #FF4D4D;
     }
+
+    .chat-container {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .qr-code img {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -152,8 +164,11 @@
     </div>
     <div class="tab-content active" id="chat-history">
       <h3>Chat History</h3>
-      <p>View and respond to client inquiries here.</p>
-      <button>Cancel</button> <button>Save</button>
+      <div class="chat-container" id="chat-container">
+        <p>Loading chat history...</p>
+      </div>
+      <textarea id="chat-response" placeholder="Type your response here..." style="width: 100%; margin-top: 10px;"></textarea>
+      <button onclick="sendMessage()">Send Response</button>
     </div>
     <div class="tab-content" id="credentials">
       <h3>Credentials</h3>
@@ -180,6 +195,14 @@
       <p>View client usage metrics and chatbot interactions.</p>
       <button>Cancel</button> <button>Save</button>
     </div>
+
+    <!-- QR Code Generator -->
+    <div class="qr-generator">
+      <h2>QR Code Generation</h2>
+      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
+      <button onclick="generateQRCode()">Generate QR Code</button>
+      <div class="qr-code" id="qr-code"></div>
+    </div>
   </div>
 
   <script>
@@ -187,100 +210,59 @@
       "https://ovmdpupofhhudxhitoov.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
-    let users = [];
     let selectedUserId = null;
 
     async function loadUsers() {
       const { data, error } = await supabase.from("users").select("*");
-      if (error) return console.error("Error loading users:", error);
-      users = data || [];
-      renderUsers(users);
+      if (error) console.error(error);
+      renderUsers(data || []);
     }
 
-    function renderUsers(data) {
+    function renderUsers(users) {
       const tableBody = document.getElementById("user-table-body");
-      tableBody.innerHTML = data.length
-        ? data.map(user => `
-          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}', '${user.password}', '${user.role}')">
-            <td>${user.first_name || "N/A"}</td>
-            <td>${user.last_name || "N/A"}</td>
-            <td>${user.phone_number || "N/A"}</td>
-            <td>${user.email || "N/A"}</td>
+      tableBody.innerHTML = users.length
+        ? users.map(user => `
+          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
+            <td>${user.first_name}</td>
+            <td>${user.last_name}</td>
+            <td>${user.phone_number}</td>
+            <td>${user.email}</td>
           </tr>`).join("")
         : "<tr><td colspan='4'>No users found.</td></tr>";
     }
 
-    function selectClient(id, firstName, lastName, phoneNumber, email, password, role) {
-      selectedUserId = id;
-      document.getElementById("update-first-name").value = firstName || "";
-      document.getElementById("update-last-name").value = lastName || "";
-      document.getElementById("update-email").value = email || "";
-      document.getElementById("update-phone-number").value = phoneNumber || "";
-      document.getElementById("update-password").value = password || "";
-      document.getElementById("update-role").value = role || "regular";
-      document.getElementById("client-name").textContent = `${firstName} ${lastName} / ${phoneNumber} / ${email}`;
-    }
-
-    async function saveOrAddUser() {
-      const newUser = {
-        first_name: document.getElementById("update-first-name").value.trim(),
-        last_name: document.getElementById("update-last-name").value.trim(),
-        email: document.getElementById("update-email").value.trim(),
-        phone_number: document.getElementById("update-phone-number").value.trim(),
-        password: document.getElementById("update-password").value.trim() || "default123",
-        role: document.getElementById("update-role").value
-      };
-
-      const { data: existingUser } = await supabase.from("users").select("id").eq("phone_number", newUser.phone_number).maybeSingle();
-      if (existingUser && (!selectedUserId || selectedUserId !== existingUser.id)) {
-        alert("Phone number is already registered.");
-        return;
-      }
-
-      const { error } = selectedUserId
-        ? await supabase.from("users").update(newUser).eq("id", selectedUserId)
-        : await supabase.from("users").insert(newUser);
-
-      if (error) alert("Failed to save user.");
-      else {
-        loadUsers();
-        clearFields();
-      }
-    }
-
-    async function deleteUser() {
+    async function loadChatHistory() {
       if (!selectedUserId) {
-        alert("No user selected to delete.");
+        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
         return;
       }
 
-      const confirmation = confirm("Are you sure you want to delete this user?");
-      if (!confirmation) return;
+      const { data, error } = await supabase.from("chats").select("*").eq("user_id", selectedUserId).order("created_at", { ascending: true });
+      const container = document.getElementById("chat-container");
 
-      const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
       if (error) {
-        alert("Failed to delete user.");
-        console.error("Error deleting user:", error);
-      } else {
-        alert("User deleted successfully!");
-        loadUsers();
-        clearFields();
+        console.error(error);
+        container.innerHTML = "<p>Error loading chat history.</p>";
+        return;
       }
+
+      container.innerHTML = data.length
+        ? data.map(chat => `<p><strong>${chat.created_at}:</strong> ${chat.message}</p>`).join("")
+        : "<p>No chat history available.</p>";
     }
 
-    function cancelUpdate() {
-      clearFields();
-    }
+    async function sendMessage() {
+      const message = document.getElementById("chat-response").value.trim();
+      if (!message || !selectedUserId) return alert("No message or client selected.");
 
-    function clearFields() {
-      document.getElementById("update-first-name").value = "";
-      document.getElementById("update-last-name").value = "";
-      document.getElementById("update-email").value = "";
-      document.getElementById("update-phone-number").value = "";
-      document.getElementById("update-password").value = "";
-      document.getElementById("update-role").value = "regular";
-      document.getElementById("client-name").textContent = "CLIENT’S NAME / PRODUCT HISTORY";
-      selectedUserId = null;
+      const { error } = await supabase.from("chats").insert([{ user_id: selectedUserId, message }]);
+      if (error) {
+        console.error(error);
+        alert("Failed to send message.");
+      } else {
+        document.getElementById("chat-response").value = "";
+        loadChatHistory();
+      }
     }
 
     function switchTab(tabId) {
@@ -290,7 +272,18 @@
       document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
     }
 
-    document.addEventListener("DOMContentLoaded", loadUsers);
+    function generateQRCode() {
+      const qrURL = document.getElementById("qr-url").value.trim();
+      if (!qrURL) {
+        alert("Please enter a URL!");
+        return;
+      }
+      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadUsers();
+    });
   </script>
 </body>
 </html>
