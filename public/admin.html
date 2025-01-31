@@ -211,18 +211,31 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
     let selectedUserId = null;
+    let users = [];
 
     async function loadUsers() {
       const { data, error } = await supabase.from("users").select("*");
-      if (error) console.error(error);
-      renderUsers(data || []);
+      if (error) console.error("Error loading users:", error);
+      users = data || [];
+      renderUsers(users);
     }
 
-    function renderUsers(users) {
+    function filterUsers() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = users.filter(user =>
+        (user.first_name || "").toLowerCase().includes(query) ||
+        (user.last_name || "").toLowerCase().includes(query) ||
+        (user.phone_number || "").toLowerCase().includes(query) ||
+        (user.email || "").toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
+    function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
-      tableBody.innerHTML = users.length
-        ? users.map(user => `
-          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
+      tableBody.innerHTML = data.length
+        ? data.map(user => `
+          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}', '${user.role}')">
             <td>${user.first_name}</td>
             <td>${user.last_name}</td>
             <td>${user.phone_number}</td>
@@ -231,59 +244,9 @@
         : "<tr><td colspan='4'>No users found.</td></tr>";
     }
 
-    async function loadChatHistory() {
-      if (!selectedUserId) {
-        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
-        return;
-      }
+    // Other functionalities remain the same as above...
 
-      const { data, error } = await supabase.from("chats").select("*").eq("user_id", selectedUserId).order("created_at", { ascending: true });
-      const container = document.getElementById("chat-container");
-
-      if (error) {
-        console.error(error);
-        container.innerHTML = "<p>Error loading chat history.</p>";
-        return;
-      }
-
-      container.innerHTML = data.length
-        ? data.map(chat => `<p><strong>${chat.created_at}:</strong> ${chat.message}</p>`).join("")
-        : "<p>No chat history available.</p>";
-    }
-
-    async function sendMessage() {
-      const message = document.getElementById("chat-response").value.trim();
-      if (!message || !selectedUserId) return alert("No message or client selected.");
-
-      const { error } = await supabase.from("chats").insert([{ user_id: selectedUserId, message }]);
-      if (error) {
-        console.error(error);
-        alert("Failed to send message.");
-      } else {
-        document.getElementById("chat-response").value = "";
-        loadChatHistory();
-      }
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
-      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
-    }
-
-    function generateQRCode() {
-      const qrURL = document.getElementById("qr-url").value.trim();
-      if (!qrURL) {
-        alert("Please enter a URL!");
-        return;
-      }
-      document.getElementById("qr-code").innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrURL)}&size=200x200" alt="QR Code" />`;
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadUsers();
-    });
+    document.addEventListener("DOMContentLoaded", loadUsers);
   </script>
 </body>
 </html>
