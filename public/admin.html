@@ -188,6 +188,17 @@
       renderUsers(users);
     }
 
+    function filterUsers() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = users.filter(user =>
+        (user.first_name || "").toLowerCase().includes(query) ||
+        (user.last_name || "").toLowerCase().includes(query) ||
+        (user.phone_number || "").toLowerCase().includes(query) ||
+        (user.email || "").toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
     function renderUsers(data) {
       const tableBody = document.getElementById("user-table-body");
       tableBody.innerHTML = data.length
@@ -201,26 +212,15 @@
         : "<tr><td colspan='4'>No users found.</td></tr>";
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
-      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
-
-      if (tabId === "chat-history") {
-        loadChatHistory();
-      }
+    function selectClient(id, firstName, lastName, phoneNumber, email, role) {
+      selectedUserId = id;
+      document.getElementById("update-first-name").value = firstName;
+      document.getElementById("update-last-name").value = lastName;
+      document.getElementById("update-email").value = email;
+      document.getElementById("update-phone-number").value = phoneNumber;
+      document.getElementById("update-role").value = role;
+      document.getElementById("client-name").textContent = `${firstName} ${lastName}`;
     }
-
-    function loadChatHistory() {
-      if (!selectedUserId) {
-        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
-        return;
-      }
-      // Fetch chat history logic goes here
-    }
-
-    // Keep all other functions intact...
 
     document.addEventListener("DOMContentLoaded", loadUsers);
   </script>
