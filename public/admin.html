@@ -48,52 +48,12 @@
       color: white;
     }
 
-    .tabs {
-      display: flex;
-      justify-content: space-around;
-      margin: 20px 0;
-    }
-
-    .tabs button {
-      padding: 10px 20px;
-      border: none;
-      border-bottom: 2px solid transparent;
-      background: #f8f9fa;
-      cursor: pointer;
-      font-weight: bold;
-      color: #007BFF;
-    }
-
-    .tabs button.active {
-      border-bottom: 2px solid #007BFF;
-    }
-
-    .tab-content {
-      display: none;
-      text-align: left;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #fff;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .credentials-input {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 20px;
-      align-items: center;
-    }
-
     .credentials-input input, .credentials-input select {
       padding: 10px;
-      width: 250px;
+      margin: 5px 0;
       border: 1px solid #ccc;
       border-radius: 5px;
+      width: 80%;
     }
 
     .credentials-buttons {
@@ -113,14 +73,6 @@
     .credentials-buttons button.delete {
       background: #FF4D4D;
     }
-
-    .chat-container {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
@@ -131,7 +83,6 @@
     <div class="search-box">
       <h2>Client Search</h2>
       <input type="text" id="search-input" placeholder="Search by name, phone, or email..." oninput="filterUsers()" />
-      <p class="error" id="error-message"></p>
       <table>
         <thead>
           <tr>
@@ -147,62 +98,58 @@
       </table>
     </div>
 
-    <!-- Credentials Tab -->
-    <div class="tab-content" id="credentials">
-      <h3>Manage User Credentials</h3>
+    <!-- Credentials -->
+    <div id="credentials">
+      <h2>Manage User Credentials</h2>
       <div class="credentials-input">
-        <input type="text" id="update-first-name" placeholder="First Name" />
-        <input type="text" id="update-last-name" placeholder="Last Name" />
-        <input type="email" id="update-email" placeholder="Email" />
-        <input type="text" id="update-phone-number" placeholder="Phone Number" />
-        <input type="password" id="update-password" placeholder="Password" />
-        <select id="update-role">
-          <option value="regular">Regular</option>
-          <option value="premium">Premium</option>
-          <option value="admin">Admin</option>
-        </select>
+        <input type="text" id="update-first-name" placeholder="First Name">
+        <input type="text" id="update-last-name" placeholder="Last Name">
+        <input type="email" id="update-email" placeholder="Email">
+        <input type="text" id="update-phone-number" placeholder="Phone Number">
+        <input type="password" id="update-password" placeholder="Password">
       </div>
       <div class="credentials-buttons">
-        <button onclick="deleteUser()" class="delete">Delete User</button>
-        <button onclick="cancelUpdate()">Cancel</button>
         <button onclick="saveOrAddUser()">Save</button>
+        <button onclick="deleteUser()" class="delete">Delete</button>
       </div>
     </div>
   </div>
 
   <script>
-    let supabase = window.supabase.createClient(
+    const supabase = supabase.createClient(
       "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     );
 
     let selectedUserId = null;
 
     async function loadUsers() {
       const { data, error } = await supabase.from("users").select("*");
-      if (error) console.error("Error loading users:", error);
-      renderUsers(data || []);
+      if (error) {
+        console.error("Error loading users:", error);
+        return;
+      }
+      renderUsers(data);
     }
 
     function renderUsers(users) {
       const tableBody = document.getElementById("user-table-body");
-      tableBody.innerHTML = users.length
-        ? users.map(user => `
-          <tr onclick="selectClient('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
-            <td>${user.first_name}</td>
-            <td>${user.last_name}</td>
-            <td>${user.phone_number}</td>
-            <td>${user.email}</td>
-          </tr>`).join("")
-        : "<tr><td colspan='4'>No users found.</td></tr>";
+      tableBody.innerHTML = users.map(user => `
+        <tr onclick="selectUser('${user.id}', '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}')">
+          <td>${user.first_name}</td>
+          <td>${user.last_name}</td>
+          <td>${user.phone_number}</td>
+          <td>${user.email}</td>
+        </tr>
+      `).join("");
     }
 
-    function selectClient(id, firstName, lastName, phoneNumber, email) {
+    function selectUser(id, firstName, lastName, phoneNumber, email) {
       selectedUserId = id;
-      document.getElementById("update-first-name").value = firstName || "";
-      document.getElementById("update-last-name").value = lastName || "";
-      document.getElementById("update-email").value = email || "";
-      document.getElementById("update-phone-number").value = phoneNumber || "";
+      document.getElementById("update-first-name").value = firstName;
+      document.getElementById("update-last-name").value = lastName;
+      document.getElementById("update-email").value = email;
+      document.getElementById("update-phone-number").value = phoneNumber;
     }
 
     async function saveOrAddUser() {
@@ -211,44 +158,33 @@
         last_name: document.getElementById("update-last-name").value,
         email: document.getElementById("update-email").value,
         phone_number: document.getElementById("update-phone-number").value,
-        password: document.getElementById("update-password").value,
-        role: document.getElementById("update-role").value
+        password: document.getElementById("update-password").value
       };
 
       if (selectedUserId) {
         const { error } = await supabase.from("users").update(user).eq("id", selectedUserId);
-        if (error) return alert("Failed to update user.");
+        if (error) return console.error("Error updating user:", error);
         alert("User updated successfully!");
       } else {
-        const { error } = await supabase.from("users").insert([user]);
-        if (error) return alert("Failed to add user.");
+        const { error } = await supabase.from("users").insert(user);
+        if (error) return console.error("Error adding user:", error);
         alert("User added successfully!");
       }
       loadUsers();
-      clearFields();
     }
 
     async function deleteUser() {
-      if (!selectedUserId) return alert("No user selected.");
+      if (!selectedUserId) {
+        alert("No user selected.");
+        return;
+      }
       const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
-      if (error) return alert("Failed to delete user.");
+      if (error) {
+        console.error("Error deleting user:", error);
+        return;
+      }
       alert("User deleted successfully!");
       loadUsers();
-      clearFields();
-    }
-
-    function cancelUpdate() {
-      clearFields();
-    }
-
-    function clearFields() {
-      document.getElementById("update-first-name").value = "";
-      document.getElementById("update-last-name").value = "";
-      document.getElementById("update-email").value = "";
-      document.getElementById("update-phone-number").value = "";
-      document.getElementById("update-password").value = "";
-      document.getElementById("update-role").value = "regular";
-      selectedUserId = null;
     }
 
     function filterUsers() {
@@ -260,9 +196,7 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      loadUsers();
-    });
+    document.addEventListener("DOMContentLoaded", loadUsers);
   </script>
 </body>
 </html>
