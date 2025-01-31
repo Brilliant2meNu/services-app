@@ -81,39 +81,6 @@
       display: block;
     }
 
-    .credentials-input {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 20px;
-      align-items: center;
-    }
-
-    .credentials-input input, .credentials-input select {
-      padding: 10px;
-      width: 250px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    .credentials-buttons {
-      margin-top: 10px;
-    }
-
-    .credentials-buttons button {
-      padding: 10px 20px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-      margin: 0 5px;
-    }
-
-    .credentials-buttons button.delete {
-      background: #FF4D4D;
-    }
-
     .chat-container {
       max-height: 300px;
       overflow-y: auto;
@@ -210,25 +177,15 @@
       "https://ovmdpupofhhudxhitoov.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
-    let selectedUserId = null;
+
     let users = [];
+    let selectedUserId = null;
 
     async function loadUsers() {
       const { data, error } = await supabase.from("users").select("*");
       if (error) console.error("Error loading users:", error);
       users = data || [];
       renderUsers(users);
-    }
-
-    function filterUsers() {
-      const query = document.getElementById("search-input").value.toLowerCase();
-      const filtered = users.filter(user =>
-        (user.first_name || "").toLowerCase().includes(query) ||
-        (user.last_name || "").toLowerCase().includes(query) ||
-        (user.phone_number || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
     }
 
     function renderUsers(data) {
@@ -244,7 +201,26 @@
         : "<tr><td colspan='4'>No users found.</td></tr>";
     }
 
-    // Other functionalities remain the same as above...
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add("active");
+
+      if (tabId === "chat-history") {
+        loadChatHistory();
+      }
+    }
+
+    function loadChatHistory() {
+      if (!selectedUserId) {
+        document.getElementById("chat-container").innerHTML = "<p>Select a client to view chat history.</p>";
+        return;
+      }
+      // Fetch chat history logic goes here
+    }
+
+    // Keep all other functions intact...
 
     document.addEventListener("DOMContentLoaded", loadUsers);
   </script>
