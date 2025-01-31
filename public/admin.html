@@ -134,6 +134,14 @@
       <h3>Usage</h3>
       <div id="usage-metrics">Loading usage data...</div>
     </div>
+
+    <!-- QR Code Generator -->
+    <div class="qr-generator">
+      <h2>QR Code Generation</h2>
+      <input type="text" id="qr-url" placeholder="Enter URL Destination" />
+      <button onclick="generateQRCode()">Generate QR Code</button>
+      <div class="qr-code" id="qr-code"></div>
+    </div>
   </div>
 
   <script>
@@ -141,7 +149,6 @@
       "https://ovmdpupofhhudxhitoov.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     );
-    let selectedUserId = null;
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -165,27 +172,6 @@
           <td>${user.email}</td>
         </tr>
       `).join('');
-    }
-
-    async function loadUsageData() {
-      if (!selectedUserId) {
-        document.getElementById("usage-metrics").innerText = "Select a user to view usage data.";
-        return;
-      }
-      const { data, error } = await supabase
-        .from('usage')
-        .select('*')
-        .eq('user_id', selectedUserId);
-      if (error) {
-        console.error("Error loading usage data:", error);
-        return;
-      }
-      document.getElementById("usage-metrics").innerText = JSON.stringify(data, null, 2);
-    }
-
-    function selectUser(userId) {
-      selectedUserId = userId;
-      document.getElementById("client-name").innerText = `Selected User: ${userId}`;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
