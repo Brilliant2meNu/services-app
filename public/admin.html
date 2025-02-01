@@ -144,7 +144,6 @@
       <input type="text" id="update-last-name" placeholder="Last Name" />
       <input type="email" id="update-email" placeholder="Email" />
       <input type="text" id="update-phone-number" placeholder="Phone Number" />
-      <input type="password" id="update-password" placeholder="Password (Required)" />
       <select id="update-role">
         <option value="regular">Regular</option>
         <option value="premium">Premium</option>
@@ -202,16 +201,47 @@
       `).join('');
     }
 
+    function filterUsers() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const filtered = users.filter(user =>
+        user.first_name.toLowerCase().includes(query) ||
+        user.last_name.toLowerCase().includes(query) ||
+        user.phone_number.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
+
+      if (tabId === 'chat-history' && selectedUserId) {
+        loadChatHistory(selectedUserId);
+      }
+    }
+
+    function selectUser(id, firstName, lastName, email, phoneNumber, role) {
+      selectedUserId = id;
+      document.getElementById('update-first-name').value = firstName;
+      document.getElementById('update-last-name').value = lastName;
+      document.getElementById('update-email').value = email;
+      document.getElementById('update-phone-number').value = phoneNumber;
+      document.getElementById('update-role').value = role;
+      document.getElementById('chat-container').innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
+    }
+
     async function addUser() {
       const firstName = document.getElementById('update-first-name').value;
       const lastName = document.getElementById('update-last-name').value;
       const email = document.getElementById('update-email').value;
       const phoneNumber = document.getElementById('update-phone-number').value;
-      const password = document.getElementById('update-password').value;
       const role = document.getElementById('update-role').value;
 
-      if (!password) {
-        alert('Password is required for new users.');
+      if (!firstName || !email) {
+        alert('First Name and Email are required!');
         return;
       }
 
@@ -220,13 +250,12 @@
         last_name: lastName,
         email,
         phone_number: phoneNumber,
-        password,
         role
       });
 
       if (error) {
-        console.error('Add User Error:', error);
-        alert('Error adding user. Please try again.');
+        alert('Error adding user.');
+        console.error(error);
         return;
       }
 
@@ -238,12 +267,12 @@
     function generateQRCode() {
       const url = document.getElementById('qr-url').value.trim();
       if (!url || !/^https?:\/\//.test(url)) {
-        alert('Invalid URL. Ensure it starts with http:// or https://.');
+        alert('Invalid URL. Must start with http:// or https://.');
         return;
       }
 
       const qrCodeContainer = document.getElementById('qr-code');
-      qrCodeContainer.innerHTML = ''; // Clear previous QR code
+      qrCodeContainer.innerHTML = '';
       QRCode.toCanvas(qrCodeContainer, url, error => {
         if (error) {
           console.error('QR Code Generation Error:', error);
