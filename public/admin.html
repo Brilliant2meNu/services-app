@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
+    /* General Styling */
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
@@ -164,13 +165,14 @@
     <!-- QR Code Generator -->
     <div class="qr-generator">
       <h2>QR Code Generator</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL (e.g., https://example.com)" />
+      <input type="text" id="qr-url" placeholder="Enter URL" />
       <button onclick="generateQRCode()">Generate QR</button>
       <div class="qr-code" id="qr-code"></div>
     </div>
   </div>
 
   <script>
+    // Supabase initialization
     const supabase = window.supabase.createClient(
       'https://ovmdpupofhhudxhitoov.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
@@ -179,6 +181,7 @@
     let users = [];
     let selectedUserId = null;
 
+    // Load users from the database
     async function loadUsers() {
       const { data, error } = await supabase.from('users').select('*');
       if (error) {
@@ -189,6 +192,7 @@
       renderUsers(users);
     }
 
+    // Render users in the table
     function renderUsers(users) {
       const tableBody = document.getElementById('user-table-body');
       tableBody.innerHTML = users.map(user => `
@@ -201,6 +205,7 @@
       `).join('');
     }
 
+    // Filter users based on search input
     function filterUsers() {
       const query = document.getElementById('search-input').value.toLowerCase();
       const filtered = users.filter(user =>
@@ -212,6 +217,7 @@
       renderUsers(filtered);
     }
 
+    // Switch tabs and load content
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -223,6 +229,7 @@
       }
     }
 
+    // Select a user and populate form fields
     function selectUser(id, firstName, lastName, email, phoneNumber, role) {
       selectedUserId = id;
       document.getElementById('update-first-name').value = firstName;
@@ -233,17 +240,70 @@
       document.getElementById('chat-container').innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
     }
 
-    async function addUser() {
+    // Update a user's details
+    async function updateUser() {
+      if (!selectedUserId) {
+        alert('No user selected to update.');
+        return;
+      }
+
       const firstName = document.getElementById('update-first-name').value;
       const lastName = document.getElementById('update-last-name').value;
       const email = document.getElementById('update-email').value;
       const phoneNumber = document.getElementById('update-phone-number').value;
       const role = document.getElementById('update-role').value;
 
-      if (!firstName || !email) {
-        alert('First Name and Email are required!');
+      const { error } = await supabase
+        .from('users')
+        .update({ first_name: firstName, last_name: lastName, email, phone_number: phoneNumber, role })
+        .eq('id', selectedUserId);
+
+      if (error) {
+        alert('Error updating user.');
+        console.error('Update error:', error);
         return;
       }
+
+      alert('User updated successfully!');
+      loadUsers();
+    }
+
+    // Delete a user
+    async function deleteUser() {
+      if (!selectedUserId) {
+        alert('No user selected to delete.');
+        return;
+      }
+
+      const { error } = await supabase.from('users').delete().eq('id', selectedUserId);
+      if (error) {
+        alert('Error deleting user.');
+        console.error('Delete error:', error);
+        return;
+      }
+
+      alert('User deleted successfully!');
+      resetForm();
+      loadUsers();
+    }
+
+    // Reset the form fields
+    function resetForm() {
+      selectedUserId = null;
+      document.getElementById('update-first-name').value = '';
+      document.getElementById('update-last-name').value = '';
+      document.getElementById('update-email').value = '';
+      document.getElementById('update-phone-number').value = '';
+      document.getElementById('update-role').value = 'regular';
+    }
+
+    // Add a new user
+    async function addUser() {
+      const firstName = document.getElementById('update-first-name').value;
+      const lastName = document.getElementById('update-last-name').value;
+      const email = document.getElementById('update-email').value;
+      const phoneNumber = document.getElementById('update-phone-number').value;
+      const role = document.getElementById('update-role').value;
 
       const { error } = await supabase.from('users').insert({
         first_name: firstName,
@@ -255,7 +315,7 @@
 
       if (error) {
         alert('Error adding user.');
-        console.error(error);
+        console.error('Add user error:', error);
         return;
       }
 
@@ -264,23 +324,49 @@
       loadUsers();
     }
 
+    // Load chat history for a user
+    async function loadChatHistory(userId) {
+      const { data, error } = await supabase
+        .from('interaction_history')
+        .select('*')
+        .eq('user_id', userId);
+
+      const chatContainer = document.getElementById('chat-container');
+      if (error) {
+        chatContainer.innerHTML = '<p>Error loading chat history.</p>';
+        console.error('Chat history error:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        chatContainer.innerHTML = '<p>No chat history found.</p>';
+        return;
+      }
+
+      chatContainer.innerHTML = data
+        .map(entry => `<p><strong>${entry.interaction_type}:</strong> ${entry.interaction_content}</p>`)
+        .join('');
+    }
+
+    // Generate a QR Code for a given URL
     function generateQRCode() {
       const url = document.getElementById('qr-url').value.trim();
-      if (!url || !/^https?:\/\//.test(url)) {
-        alert('Invalid URL. Must start with http:// or https://.');
+      if (!url) {
+        alert('Please enter a URL to generate a QR code.');
         return;
       }
 
       const qrCodeContainer = document.getElementById('qr-code');
-      qrCodeContainer.innerHTML = '';
+      qrCodeContainer.innerHTML = ''; // Clear any previous QR code
       QRCode.toCanvas(qrCodeContainer, url, error => {
         if (error) {
-          console.error('QR Code Generation Error:', error);
+          console.error('QR Code generation error:', error);
           alert('Error generating QR code.');
         }
       });
     }
 
+    // Load initial data on page load
     document.addEventListener('DOMContentLoaded', loadUsers);
   </script>
 </body>
