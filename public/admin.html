@@ -1,240 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <!-- Supabase and QRCode Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-  <style>
-    /* General Styling */
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
+<!-- QR Code Generator -->
+<div class="qr-generator">
+  <h2>QR Code Generator</h2>
+  <input type="text" id="qr-url" placeholder="Enter URL" />
+  <button onclick="generateQRCode()">Generate QR</button>
+  <div class="qr-code" id="qr-code"></div>
+</div>
+
+<script>
+  // QR Code Generator Functionality
+  function generateQRCode() {
+    const url = document.getElementById('qr-url').value.trim();
+    if (!url) {
+      alert('Please enter a URL to generate a QR code.');
+      return;
     }
 
-    .container {
-      margin: 20px auto;
-      text-align: center;
-      padding: 20px;
-      border-radius: 5px;
-      background: white;
-      max-width: 800px;
-    }
+    const qrCodeContainer = document.getElementById('qr-code');
+    qrCodeContainer.innerHTML = ''; // Clear previous QR Code if any
 
-    h1, h2 {
-      color: #007BFF;
-    }
-
-    .search-box input {
-      width: 60%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-    }
-
-    th {
-      background: #007bff;
-      color: white;
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: space-around;
-      margin: 20px 0;
-    }
-
-    .tabs button {
-      padding: 10px 20px;
-      border: none;
-      border-bottom: 2px solid transparent;
-      background: #f8f9fa;
-      cursor: pointer;
-      font-weight: bold;
-      color: #007BFF;
-    }
-
-    .tabs button.active {
-      border-bottom: 2px solid #007BFF;
-    }
-
-    .tab-content {
-      display: none;
-      text-align: left;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #fff;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .chat-container {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-top: 10px;
-    }
-
-    .qr-code img {
-      margin-top: 20px;
-    }
-
-    .credentials-buttons {
-      margin-top: 10px;
-    }
-
-    .credentials-buttons button {
-      margin-right: 5px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Admin Dashboard</h1>
-
-    <!-- Client Search -->
-    <div class="search-box">
-      <h2>Client Search</h2>
-      <input type="text" id="search-input" placeholder="Search by name, phone, or email..." oninput="filterUsers()" />
-      <table>
-        <thead>
-          <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Phone Number</th>
-            <th>Email</th>
-          </tr>
-        </thead>
-        <tbody id="user-table-body">
-          <tr><td colspan="4">Loading users...</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tabs Section -->
-    <div class="tabs">
-      <button class="tab-button active" onclick="switchTab('chat-history')">Chat History</button>
-      <button class="tab-button" onclick="switchTab('credentials')">Credentials</button>
-      <button class="tab-button" onclick="switchTab('usage')">Usage</button>
-    </div>
-    <div class="tab-content active" id="chat-history">
-      <h3>Chat History</h3>
-      <div class="chat-container" id="chat-container">
-        <p>Select a client to load chat history.</p>
-      </div>
-    </div>
-    <div class="tab-content" id="credentials">
-      <h3>Credentials</h3>
-      <input type="text" id="update-first-name" placeholder="First Name" />
-      <input type="text" id="update-last-name" placeholder="Last Name" />
-      <input type="email" id="update-email" placeholder="Email" />
-      <input type="text" id="update-phone-number" placeholder="Phone Number" />
-      <select id="update-role">
-        <option value="regular">Regular</option>
-        <option value="premium">Premium</option>
-        <option value="admin">Admin</option>
-      </select>
-      <div class="credentials-buttons">
-        <button onclick="deleteUser()">Delete User</button>
-        <button onclick="resetForm()">Cancel</button>
-        <button onclick="updateUser()">Save</button>
-        <button onclick="addUser()">+ Add User</button>
-      </div>
-    </div>
-    <div class="tab-content" id="usage">
-      <h3>Usage</h3>
-      <p>Metrics coming soon...</p>
-    </div>
-
-    <!-- QR Code Generator -->
-    <div class="qr-generator">
-      <h2>QR Code Generator</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL" />
-      <button onclick="generateQRCode()">Generate QR</button>
-      <div class="qr-code" id="qr-code"></div>
-    </div>
-  </div>
-
-  <script>
-    // Initialize Supabase client
-    const supabase = window.supabase.createClient(
-      'https://ovmdpupofhhudxhitoov.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM'
-    );
-
-    let users = [];
-    let selectedUserId = null;
-
-    // Load users from the database
-    async function loadUsers() {
-      const { data, error } = await supabase.from('users').select('*');
-      if (error) {
-        console.error('Error loading users:', error);
-        return;
-      }
-      users = data;
-      renderUsers(users);
-    }
-
-    function renderUsers(users) {
-      const tableBody = document.getElementById('user-table-body');
-      tableBody.innerHTML = users.map(user => `
-        <tr onclick="selectUser('${user.id}', '${user.first_name}', '${user.last_name}', '${user.email}', '${user.phone_number}', '${user.role}')">
-          <td>${user.first_name}</td>
-          <td>${user.last_name}</td>
-          <td>${user.phone_number}</td>
-          <td>${user.email}</td>
-        </tr>
-      `).join('');
-    }
-
-    function filterUsers() {
-      const query = document.getElementById('search-input').value.toLowerCase();
-      const filtered = users.filter(user =>
-        user.first_name.toLowerCase().includes(query) ||
-        user.last_name.toLowerCase().includes(query) ||
-        user.phone_number.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
-    }
-
-    // QR Code Generator Implementation
-    function generateQRCode() {
-      const url = document.getElementById('qr-url').value.trim();
-      if (!url) {
-        alert('Please enter a valid URL.');
-        return;
-      }
-
-      const qrCodeContainer = document.getElementById('qr-code');
-      qrCodeContainer.innerHTML = ''; // Clear previous QR code
-      QRCode.toCanvas(qrCodeContainer, url, (error) => {
+    try {
+      const canvas = document.createElement('canvas');
+      QRCode.toCanvas(canvas, url, { width: 200 }, (error) => {
         if (error) {
-          console.error('QR Code generation error:', error);
-          alert('Failed to generate QR Code.');
+          console.error('Error generating QR Code:', error);
+          alert('Error generating QR Code. Please try again.');
+          return;
         }
+        qrCodeContainer.appendChild(canvas); // Add QR Code to the container
       });
+    } catch (err) {
+      console.error('QR Code generation failed:', err);
+      alert('An unexpected error occurred. Please try again.');
     }
-
-    document.addEventListener('DOMContentLoaded', loadUsers);
-  </script>
-</body>
-</html>
+  }
+</script>
