@@ -200,6 +200,17 @@
       // Chat loading logic can be added here.
     }
 
+    function filterUsers() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const filtered = users.filter(user =>
+        user.first_name.toLowerCase().includes(query) ||
+        user.last_name.toLowerCase().includes(query) ||
+        user.phone_number.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
