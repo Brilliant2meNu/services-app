@@ -92,6 +92,24 @@
     .qr-code img {
       margin-top: 20px;
     }
+
+    .credentials-buttons {
+      margin-top: 10px;
+    }
+
+    .credentials-buttons button {
+      margin: 5px;
+      padding: 8px 15px;
+      border: none;
+      background: #007BFF;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .credentials-buttons button.delete {
+      background: #dc3545;
+    }
   </style>
 </head>
 <body>
@@ -140,7 +158,12 @@
         <option value="premium">Premium</option>
         <option value="admin">Admin</option>
       </select>
-      <button onclick="updateUser()">Update User</button>
+      <div class="credentials-buttons">
+        <button class="delete" onclick="deleteUser()">Delete User</button>
+        <button onclick="clearFields()">Cancel</button>
+        <button onclick="saveOrAddUser()">Save</button>
+        <button onclick="addNewUser()">+ Add User</button>
+      </div>
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
@@ -194,28 +217,83 @@
       document.getElementById('update-email').value = email;
       document.getElementById('update-phone-number').value = phoneNumber;
       document.getElementById('update-role').value = role;
-
-      const chatContainer = document.getElementById('chat-container');
-      chatContainer.innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
-      // Chat loading logic can be added here.
     }
 
-    function filterUsers() {
-      const query = document.getElementById('search-input').value.toLowerCase();
-      const filtered = users.filter(user =>
-        user.first_name.toLowerCase().includes(query) ||
-        user.last_name.toLowerCase().includes(query) ||
-        user.phone_number.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
+    function clearFields() {
+      selectedUserId = null;
+      document.getElementById('update-first-name').value = '';
+      document.getElementById('update-last-name').value = '';
+      document.getElementById('update-email').value = '';
+      document.getElementById('update-phone-number').value = '';
+      document.getElementById('update-role').value = 'regular';
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
+    async function saveOrAddUser() {
+      const firstName = document.getElementById('update-first-name').value;
+      const lastName = document.getElementById('update-last-name').value;
+      const email = document.getElementById('update-email').value;
+      const phoneNumber = document.getElementById('update-phone-number').value;
+      const role = document.getElementById('update-role').value;
+
+      if (!firstName || !lastName || !email || !phoneNumber) {
+        alert('All fields are required.');
+        return;
+      }
+
+      if (selectedUserId) {
+        // Update user
+        const { error } = await supabase.from('users').update({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          phone_number: phoneNumber,
+          role,
+        }).eq('id', selectedUserId);
+
+        if (error) {
+          alert('Error updating user.');
+          return;
+        }
+
+        alert('User updated successfully.');
+      } else {
+        // Add new user
+        const { error } = await supabase.from('users').insert({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          phone_number: phoneNumber,
+          role,
+        });
+
+        if (error) {
+          alert('Error adding new user.');
+          return;
+        }
+
+        alert('New user added successfully.');
+      }
+
+      loadUsers();
+      clearFields();
+    }
+
+    async function deleteUser() {
+      if (!selectedUserId) {
+        alert('No user selected.');
+        return;
+      }
+
+      const { error } = await supabase.from('users').delete().eq('id', selectedUserId);
+
+      if (error) {
+        alert('Error deleting user.');
+        return;
+      }
+
+      alert('User deleted successfully.');
+      loadUsers();
+      clearFields();
     }
 
     document.addEventListener('DOMContentLoaded', loadUsers);
