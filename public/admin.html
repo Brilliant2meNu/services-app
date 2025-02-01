@@ -144,7 +144,7 @@
       <input type="text" id="update-last-name" placeholder="Last Name" />
       <input type="email" id="update-email" placeholder="Email" />
       <input type="text" id="update-phone-number" placeholder="Phone Number" />
-      <input type="password" id="update-password" placeholder="Password" />
+      <input type="password" id="update-password" placeholder="Password (Required)" />
       <select id="update-role">
         <option value="regular">Regular</option>
         <option value="premium">Premium</option>
@@ -165,7 +165,7 @@
     <!-- QR Code Generator -->
     <div class="qr-generator">
       <h2>QR Code Generator</h2>
-      <input type="text" id="qr-url" placeholder="Enter URL" />
+      <input type="text" id="qr-url" placeholder="Enter URL (e.g., https://example.com)" />
       <button onclick="generateQRCode()">Generate QR</button>
       <div class="qr-code" id="qr-code"></div>
     </div>
@@ -207,11 +207,11 @@
       const lastName = document.getElementById('update-last-name').value;
       const email = document.getElementById('update-email').value;
       const phoneNumber = document.getElementById('update-phone-number').value;
-      const password = document.getElementById('update-password').value; // Password input
+      const password = document.getElementById('update-password').value;
       const role = document.getElementById('update-role').value;
 
       if (!password) {
-        alert('Password is required!');
+        alert('Password is required for new users.');
         return;
       }
 
@@ -220,13 +220,13 @@
         last_name: lastName,
         email,
         phone_number: phoneNumber,
-        password, // Adding password
+        password,
         role
       });
 
       if (error) {
-        alert('Error adding user.');
-        console.error('Add user error:', error);
+        console.error('Add User Error:', error);
+        alert('Error adding user. Please try again.');
         return;
       }
 
@@ -237,8 +237,8 @@
 
     function generateQRCode() {
       const url = document.getElementById('qr-url').value.trim();
-      if (!url || !/^https?:\/\/.+$/.test(url)) {
-        alert('Please enter a valid URL (must start with http:// or https://).');
+      if (!url || !/^https?:\/\//.test(url)) {
+        alert('Invalid URL. Ensure it starts with http:// or https://.');
         return;
       }
 
@@ -246,7 +246,7 @@
       qrCodeContainer.innerHTML = ''; // Clear previous QR code
       QRCode.toCanvas(qrCodeContainer, url, error => {
         if (error) {
-          console.error('QR Code generation error:', error);
+          console.error('QR Code Generation Error:', error);
           alert('Error generating QR code.');
         }
       });
