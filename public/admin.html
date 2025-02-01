@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -333,6 +334,23 @@
       chatContainer.innerHTML = data
         .map(entry => `<p><strong>${entry.interaction_type}:</strong> ${entry.interaction_content}</p>`)
         .join('');
+    }
+
+    function generateQRCode() {
+      const url = document.getElementById('qr-url').value.trim();
+      if (!url) {
+        alert('Please enter a URL to generate a QR code.');
+        return;
+      }
+
+      const qrCodeContainer = document.getElementById('qr-code');
+      qrCodeContainer.innerHTML = ''; // Clear any previous QR code
+      QRCode.toCanvas(qrCodeContainer, url, error => {
+        if (error) {
+          console.error('QR Code generation error:', error);
+          alert('Error generating QR code.');
+        }
+      });
     }
 
     document.addEventListener('DOMContentLoaded', loadUsers);
