@@ -92,6 +92,14 @@
     .qr-code img {
       margin-top: 20px;
     }
+
+    .credentials-buttons {
+      margin-top: 10px;
+    }
+
+    .credentials-buttons button {
+      margin-right: 5px;
+    }
   </style>
 </head>
 <body>
@@ -140,7 +148,12 @@
         <option value="premium">Premium</option>
         <option value="admin">Admin</option>
       </select>
-      <button onclick="updateUser()">Update User</button>
+      <div class="credentials-buttons">
+        <button onclick="deleteUser()">Delete User</button>
+        <button onclick="resetForm()">Cancel</button>
+        <button onclick="updateUser()">Save</button>
+        <button onclick="addUser()">+ Add User</button>
+      </div>
     </div>
     <div class="tab-content" id="usage">
       <h3>Usage</h3>
@@ -203,6 +216,10 @@
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
+
+      if (tabId === 'chat-history' && selectedUserId) {
+        loadChatHistory(selectedUserId);
+      }
     }
 
     function selectUser(id, firstName, lastName, email, phoneNumber, role) {
@@ -212,9 +229,7 @@
       document.getElementById('update-email').value = email;
       document.getElementById('update-phone-number').value = phoneNumber;
       document.getElementById('update-role').value = role;
-
-      const chatContainer = document.getElementById('chat-container');
-      chatContainer.innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
+      document.getElementById('chat-container').innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
     }
 
     async function updateUser() {
@@ -242,6 +257,82 @@
 
       alert('User updated successfully!');
       loadUsers();
+    }
+
+    async function deleteUser() {
+      if (!selectedUserId) {
+        alert('No user selected to delete.');
+        return;
+      }
+
+      const { error } = await supabase.from('users').delete().eq('id', selectedUserId);
+      if (error) {
+        alert('Error deleting user.');
+        console.error('Delete error:', error);
+        return;
+      }
+
+      alert('User deleted successfully!');
+      resetForm();
+      loadUsers();
+    }
+
+    function resetForm() {
+      selectedUserId = null;
+      document.getElementById('update-first-name').value = '';
+      document.getElementById('update-last-name').value = '';
+      document.getElementById('update-email').value = '';
+      document.getElementById('update-phone-number').value = '';
+      document.getElementById('update-role').value = 'regular';
+    }
+
+    async function addUser() {
+      const firstName = document.getElementById('update-first-name').value;
+      const lastName = document.getElementById('update-last-name').value;
+      const email = document.getElementById('update-email').value;
+      const phoneNumber = document.getElementById('update-phone-number').value;
+      const role = document.getElementById('update-role').value;
+
+      const { error } = await supabase.from('users').insert({
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone_number: phoneNumber,
+        role
+      });
+
+      if (error) {
+        alert('Error adding user.');
+        console.error('Add user error:', error);
+        return;
+      }
+
+      alert('User added successfully!');
+      resetForm();
+      loadUsers();
+    }
+
+    async function loadChatHistory(userId) {
+      const { data, error } = await supabase
+        .from('interaction_history')
+        .select('*')
+        .eq('user_id', userId);
+
+      const chatContainer = document.getElementById('chat-container');
+      if (error) {
+        chatContainer.innerHTML = '<p>Error loading chat history.</p>';
+        console.error('Chat history error:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        chatContainer.innerHTML = '<p>No chat history found.</p>';
+        return;
+      }
+
+      chatContainer.innerHTML = data
+        .map(entry => `<p><strong>${entry.interaction_type}:</strong> ${entry.interaction_content}</p>`)
+        .join('');
     }
 
     document.addEventListener('DOMContentLoaded', loadUsers);
