@@ -163,6 +163,7 @@
     );
 
     let users = [];
+    let selectedUserId = null;
 
     async function loadUsers() {
       const { data, error } = await supabase.from('users').select('*');
@@ -177,7 +178,7 @@
     function renderUsers(users) {
       const tableBody = document.getElementById('user-table-body');
       tableBody.innerHTML = users.map(user => `
-        <tr onclick="selectUser('${user.id}', '${user.first_name}', '${user.last_name}')">
+        <tr onclick="selectUser('${user.id}', '${user.first_name}', '${user.last_name}', '${user.email}', '${user.phone_number}', '${user.role}')">
           <td>${user.first_name}</td>
           <td>${user.last_name}</td>
           <td>${user.phone_number}</td>
@@ -186,9 +187,24 @@
       `).join('');
     }
 
+    function selectUser(id, firstName, lastName, email, phoneNumber, role) {
+      selectedUserId = id;
+      document.getElementById('update-first-name').value = firstName;
+      document.getElementById('update-last-name').value = lastName;
+      document.getElementById('update-email').value = email;
+      document.getElementById('update-phone-number').value = phoneNumber;
+      document.getElementById('update-role').value = role;
+
+      const chatContainer = document.getElementById('chat-container');
+      chatContainer.innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
+      // Chat loading logic can be added here.
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
+      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
     }
 
     document.addEventListener('DOMContentLoaded', loadUsers);
