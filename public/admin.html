@@ -144,6 +144,7 @@
       <input type="text" id="update-last-name" placeholder="Last Name" />
       <input type="email" id="update-email" placeholder="Email" />
       <input type="text" id="update-phone-number" placeholder="Phone Number" />
+      <input type="password" id="update-password" placeholder="Password" />
       <select id="update-role">
         <option value="regular">Regular</option>
         <option value="premium">Premium</option>
@@ -201,104 +202,25 @@
       `).join('');
     }
 
-    function filterUsers() {
-      const query = document.getElementById('search-input').value.toLowerCase();
-      const filtered = users.filter(user =>
-        user.first_name.toLowerCase().includes(query) ||
-        user.last_name.toLowerCase().includes(query) ||
-        user.phone_number.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.querySelector(`.tab-button[onclick="switchTab('${tabId}')"]`).classList.add('active');
-
-      if (tabId === 'chat-history' && selectedUserId) {
-        loadChatHistory(selectedUserId);
-      }
-    }
-
-    function selectUser(id, firstName, lastName, email, phoneNumber, role) {
-      selectedUserId = id;
-      document.getElementById('update-first-name').value = firstName;
-      document.getElementById('update-last-name').value = lastName;
-      document.getElementById('update-email').value = email;
-      document.getElementById('update-phone-number').value = phoneNumber;
-      document.getElementById('update-role').value = role;
-      document.getElementById('chat-container').innerHTML = `<p>Loading chat history for ${firstName} ${lastName}...</p>`;
-    }
-
-    async function updateUser() {
-      if (!selectedUserId) {
-        alert('No user selected to update.');
-        return;
-      }
-
-      const firstName = document.getElementById('update-first-name').value;
-      const lastName = document.getElementById('update-last-name').value;
-      const email = document.getElementById('update-email').value;
-      const phoneNumber = document.getElementById('update-phone-number').value;
-      const role = document.getElementById('update-role').value;
-
-      const { error } = await supabase
-        .from('users')
-        .update({ first_name: firstName, last_name: lastName, email, phone_number: phoneNumber, role })
-        .eq('id', selectedUserId);
-
-      if (error) {
-        alert('Error updating user.');
-        console.error('Update error:', error);
-        return;
-      }
-
-      alert('User updated successfully!');
-      loadUsers();
-    }
-
-    async function deleteUser() {
-      if (!selectedUserId) {
-        alert('No user selected to delete.');
-        return;
-      }
-
-      const { error } = await supabase.from('users').delete().eq('id', selectedUserId);
-      if (error) {
-        alert('Error deleting user.');
-        console.error('Delete error:', error);
-        return;
-      }
-
-      alert('User deleted successfully!');
-      resetForm();
-      loadUsers();
-    }
-
-    function resetForm() {
-      selectedUserId = null;
-      document.getElementById('update-first-name').value = '';
-      document.getElementById('update-last-name').value = '';
-      document.getElementById('update-email').value = '';
-      document.getElementById('update-phone-number').value = '';
-      document.getElementById('update-role').value = 'regular';
-    }
-
     async function addUser() {
       const firstName = document.getElementById('update-first-name').value;
       const lastName = document.getElementById('update-last-name').value;
       const email = document.getElementById('update-email').value;
       const phoneNumber = document.getElementById('update-phone-number').value;
+      const password = document.getElementById('update-password').value; // Password input
       const role = document.getElementById('update-role').value;
+
+      if (!password) {
+        alert('Password is required!');
+        return;
+      }
 
       const { error } = await supabase.from('users').insert({
         first_name: firstName,
         last_name: lastName,
         email,
         phone_number: phoneNumber,
+        password, // Adding password
         role
       });
 
@@ -313,38 +235,15 @@
       loadUsers();
     }
 
-    async function loadChatHistory(userId) {
-      const { data, error } = await supabase
-        .from('interaction_history')
-        .select('*')
-        .eq('user_id', userId);
-
-      const chatContainer = document.getElementById('chat-container');
-      if (error) {
-        chatContainer.innerHTML = '<p>Error loading chat history.</p>';
-        console.error('Chat history error:', error);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        chatContainer.innerHTML = '<p>No chat history found.</p>';
-        return;
-      }
-
-      chatContainer.innerHTML = data
-        .map(entry => `<p><strong>${entry.interaction_type}:</strong> ${entry.interaction_content}</p>`)
-        .join('');
-    }
-
     function generateQRCode() {
       const url = document.getElementById('qr-url').value.trim();
-      if (!url) {
-        alert('Please enter a URL to generate a QR code.');
+      if (!url || !/^https?:\/\/.+$/.test(url)) {
+        alert('Please enter a valid URL (must start with http:// or https://).');
         return;
       }
 
       const qrCodeContainer = document.getElementById('qr-code');
-      qrCodeContainer.innerHTML = ''; // Clear any previous QR code
+      qrCodeContainer.innerHTML = ''; // Clear previous QR code
       QRCode.toCanvas(qrCodeContainer, url, error => {
         if (error) {
           console.error('QR Code generation error:', error);
