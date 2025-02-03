@@ -6,7 +6,7 @@
   <title>Client Management</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    /* Minimal styling for clarity */
+    /* Minimal styling */
     body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; }
     .container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 5px; }
     table { width: 100%; margin: 20px 0; border-collapse: collapse; }
@@ -55,12 +55,18 @@
   </div>
 
   <script>
-    const supabase = supabase.createClient(
-      "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
-    );
+    let supabase;
     let clients = [];
     let selectedClientId = null;
+
+    // Initialize Supabase client
+    document.addEventListener("DOMContentLoaded", () => {
+      supabase = window.supabase.createClient(
+        "https://ovmdpupofhhudxhitoov.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+      );
+      loadClients();
+    });
 
     async function loadClients() {
       const table = document.getElementById("client-table");
@@ -168,8 +174,6 @@
       document.getElementById("password").value = "";
       selectedClientId = null;
     }
-
-    document.addEventListener("DOMContentLoaded", loadClients);
   </script>
 </body>
 </html>
