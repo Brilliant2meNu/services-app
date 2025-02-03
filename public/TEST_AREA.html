@@ -3,78 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Generator</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script> <!-- QRious Library for QR Code Generation -->
+  <title>Client Management</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      color: #007bff;
-    }
-
-    input {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-
-    canvas {
-      margin-top: 20px;
-    }
+    /* Minimal styling */
+    body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; }
+    .container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 5px; }
+    table { width: 100%; margin: 20px 0; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ccc; }
+    th { background: #007bff; color: white; }
+    .buttons { margin: 10px 0; }
+    button { margin: 5px; padding: 10px; border-radius: 5px; cursor: pointer; }
+    .delete { background: #ff4d4d; color: white; }
+    .save { background: #007bff; color: white; }
+    .add { background: #28a745; color: white; }
+    .cancel { background: #6c757d; color: white; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>QR Code Generator</h1>
-    <input type="text" id="qr-input" placeholder="Enter URL to generate QR code" />
-    <button onclick="generateQRCode()">Generate QR Code</button>
-    <canvas id="qr-code"></canvas> <!-- QR Code will be rendered here -->
+    <h1>Client Management</h1>
+    <input type="text" id="search-input" placeholder="Search clients..." oninput="filterClients()">
+    <table>
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+        </tr>
+      </thead>
+      <tbody id="client-table">
+        <tr><td colspan="4">Loading...</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Client Details</h2>
+    <div>
+      <input type="text" id="first-name" placeholder="First Name">
+      <input type="text" id="last-name" placeholder="Last Name">
+      <input type="email" id="email" placeholder="Email">
+      <input type="text" id="phone" placeholder="Phone Number">
+      <input type="password" id="password" placeholder="Password">
+    </div>
+    <div class="buttons">
+      <button class="delete" onclick="deleteClient()">Delete User</button>
+      <button class="cancel" onclick="clearFields()">Cancel</button>
+      <button class="save" onclick="saveClient()">Save</button>
+      <button class="add" onclick="addClient()">Add User</button>
+    </div>
   </div>
 
   <script>
-    function generateQRCode() {
-      const qrInput = document.getElementById("qr-input").value.trim();
-      const qrCanvas = document.getElementById("qr-code");
+    let supabase;
+    let clients = [];
+    let selectedClientId = null;
 
-      if (!qrInput) {
-        alert("Please enter a valid URL or text!");
-        return;
+    // Initialize Supabase client
+    document.addEventListener("DOMContentLoaded", () => {
+      supabase = window.supabase.createClient(
+        "https://ovmdpupofhhudxhitoov.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+      );
+      loadClients();
+    });
+
+    async function loadClients() {
+      const table = document.getElementById("client-table");
+      try {
+        const { data, error } = await supabase.from("users").select("*");
+        if (error) throw error;
+        clients = data || [];
+        renderClients(clients);
+      } catch (error) {
+        console.error("Error loading clients:", error);
+        table.innerHTML = "<tr><td colspan='4'>Error loading clients.</td></tr>";
       }
+    }
 
-      // QRious library to generate QR code
-      const qr = new QRious({
-        element: qrCanvas,
-        value: qrInput, // The content for the QR code
-        size: 250,      // Size of the QR code
-        level: "H"      // Error correction level (H = High)
-      });
+    function renderClients(data) {
+      const table = document.getElementById("client-table");
+      table.innerHTML = data.length
+        ? data.map(client => `
+          <tr onclick="selectClient('${client.id}', '${client.first_name}', '${client.last_name}', '${client.email}', '${client.phone_number}')">
+            <td>${client.first_name || ""}</td>
+            <td>${client.last_name || ""}</td>
+            <td>${client.email || ""}</td>
+            <td>${client.phone_number || ""}</td>
+          </tr>
+        `).join("")
+        : "<tr><td colspan='4'>No clients found.</td></tr>";
+    }
 
-      console.log("QR Code generated for:", qrInput);
+    function filterClients() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = clients.filter(client =>
+        (client.first_name || "").toLowerCase().includes(query) ||
+        (client.last_name || "").toLowerCase().includes(query) ||
+        (client.email || "").toLowerCase().includes(query) ||
+        (client.phone_number || "").toLowerCase().includes(query)
+      );
+      renderClients(filtered);
+    }
+
+    function selectClient(id, firstName, lastName, email, phone) {
+      selectedClientId = id;
+      document.getElementById("first-name").value = firstName || "";
+      document.getElementById("last-name").value = lastName || "";
+      document.getElementById("email").value = email || "";
+      document.getElementById("phone").value = phone || "";
+    }
+
+    async function saveClient() {
+      if (!selectedClientId) return alert("No client selected!");
+      const updatedClient = {
+        first_name: document.getElementById("first-name").value.trim(),
+        last_name: document.getElementById("last-name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone_number: document.getElementById("phone").value.trim(),
+        password: document.getElementById("password").value.trim()
+      };
+      try {
+        const { error } = await supabase.from("users").update(updatedClient).eq("id", selectedClientId);
+        if (error) throw error;
+        alert("Client updated successfully!");
+        loadClients();
+        clearFields();
+      } catch (error) {
+        console.error("Error saving client:", error);
+      }
+    }
+
+    async function addClient() {
+      const newClient = {
+        first_name: document.getElementById("first-name").value.trim(),
+        last_name: document.getElementById("last-name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone_number: document.getElementById("phone").value.trim(),
+        password: document.getElementById("password").value.trim()
+      };
+      try {
+        const { error } = await supabase.from("users").insert(newClient);
+        if (error) throw error;
+        alert("New client added successfully!");
+        loadClients();
+        clearFields();
+      } catch (error) {
+        console.error("Error adding client:", error);
+      }
+    }
+
+    async function deleteClient() {
+      if (!selectedClientId) return alert("No client selected!");
+      try {
+        const { error } = await supabase.from("users").delete().eq("id", selectedClientId);
+        if (error) throw error;
+        alert("Client deleted successfully!");
+        loadClients();
+        clearFields();
+      } catch (error) {
+        console.error("Error deleting client:", error);
+      }
+    }
+
+    function clearFields() {
+      document.getElementById("first-name").value = "";
+      document.getElementById("last-name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("password").value = "";
+      selectedClientId = null;
     }
   </script>
 </body>
