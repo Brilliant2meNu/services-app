@@ -119,6 +119,7 @@
       "https://ovmdpupofhhudxhitoov.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
+
     let clients = [];
     let selectedClientId = null;
 
@@ -225,25 +226,4 @@
           .from("users")
           .delete()
           .eq("id", selectedClientId);
-        if (error) throw error;
-        alert("Client deleted successfully!");
-        loadClients();
-        clearFields();
-      } catch (error) {
-        console.error("Error deleting client:", error);
-      }
-    }
-
-    function clearFields() {
-      document.getElementById("first-name").value = "";
-      document.getElementById("last-name").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("phone").value = "";
-      document.getElementById("password").value = "";
-      selectedClientId = null;
-    }
-
-    document.addEventListener("DOMContentLoaded", loadClients);
-  </script>
-</body>
-</html>
+        if
