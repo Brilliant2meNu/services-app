@@ -3,33 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Client Search & Update</title>
+  <title>Client Management</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f8f9fa;
+      text-align: center;
     }
 
     .container {
       margin: 20px auto;
-      text-align: center;
-      padding: 20px;
-      border-radius: 5px;
-      background: white;
       max-width: 800px;
-    }
-
-    h1 {
-      color: #007BFF;
-    }
-
-    .search-box input {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
+      padding: 20px;
+      background: white;
       border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     table {
@@ -39,206 +28,196 @@
     }
 
     th, td {
-      border: 1px solid #ccc;
       padding: 10px;
+      border: 1px solid #ccc;
     }
 
     th {
-      background: #007bff;
+      background-color: #007bff;
       color: white;
     }
 
-    .form-container {
-      text-align: left;
-      margin: 20px auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #fff;
-      max-width: 600px;
+    .credentials-input {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
     }
 
-    .form-container input {
-      width: calc(50% - 10px);
+    .credentials-input input {
       padding: 10px;
-      margin: 10px 5px;
+      width: 150px;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
 
-    .form-container button {
+    .credentials-buttons button {
       padding: 10px 20px;
-      margin: 10px 5px;
       border: none;
       border-radius: 5px;
-      color: white;
       cursor: pointer;
+      margin: 5px;
     }
 
-    .save-button {
-      background: #007BFF;
+    .delete {
+      background-color: #ff4d4d;
+      color: white;
     }
 
-    .cancel-button {
-      background: #6c757d;
+    .save {
+      background-color: #007bff;
+      color: white;
     }
 
-    .delete-button {
-      background: #dc3545;
-    }
-
-    .error {
-      color: red;
+    .cancel {
+      background-color: #6c757d;
+      color: white;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Client Search & Update</h1>
-
-    <!-- Client Search -->
-    <input type="text" id="search-input" placeholder="Search by name, phone, or email..." oninput="filterUsers()" />
-    <p class="error" id="error-message"></p>
-    
+    <h1>Client Management</h1>
+    <input type="text" id="search-input" placeholder="Search clients..." oninput="filterClients()" />
     <table>
       <thead>
         <tr>
           <th>First Name</th>
           <th>Last Name</th>
-          <th>Phone Number</th>
           <th>Email</th>
+          <th>Phone</th>
         </tr>
       </thead>
-      <tbody id="user-table-body">
-        <tr><td colspan="4">Loading users...</td></tr>
+      <tbody id="client-table">
+        <tr><td colspan="4">Loading...</td></tr>
       </tbody>
     </table>
-  </div>
 
-  <!-- User Details Form -->
-  <div class="form-container" id="user-form" style="display: none;">
-    <h3>Edit User Details</h3>
-    <input type="text" id="update-first-name" placeholder="First Name" />
-    <input type="text" id="update-last-name" placeholder="Last Name" />
-    <input type="email" id="update-email" placeholder="Email" />
-    <input type="text" id="update-phone-number" placeholder="Phone Number" />
-    <input type="password" id="update-password" placeholder="Password" />
-    <div>
-      <button class="save-button" onclick="saveUser()">Save</button>
-      <button class="cancel-button" onclick="cancelEdit()">Cancel</button>
-      <button class="delete-button" onclick="deleteUser()">Delete</button>
+    <h2>Client Details</h2>
+    <div class="credentials-input">
+      <input type="text" id="first-name" placeholder="First Name" />
+      <input type="text" id="last-name" placeholder="Last Name" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="text" id="phone" placeholder="Phone Number" />
+      <input type="password" id="password" placeholder="Password" />
+    </div>
+    <div class="credentials-buttons">
+      <button class="delete" onclick="deleteClient()">Delete User</button>
+      <button class="cancel" onclick="clearFields()">Cancel</button>
+      <button class="save" onclick="saveClient()">Save</button>
     </div>
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
+    const supabase = supabase.createClient(
       "https://ovmdpupofhhudxhitoov.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
+    let clients = [];
+    let selectedClientId = null;
 
-    let users = [];
-    let selectedUserId = null;
-
-    // Load Users from Supabase
-    async function loadUsers() {
-      const tableBody = document.getElementById("user-table-body");
+    async function loadClients() {
+      const table = document.getElementById("client-table");
       try {
         const { data, error } = await supabase.from("users").select("*");
         if (error) throw error;
-
-        users = data || [];
-        renderUsers(users);
+        clients = data || [];
+        renderClients(clients);
       } catch (error) {
-        console.error("Error loading users:", error);
-        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
+        console.error("Error loading clients:", error);
+        table.innerHTML = "<tr><td colspan='4'>Error loading clients.</td></tr>";
       }
     }
 
-    // Render Users in Table
-    function renderUsers(data) {
-      const tableBody = document.getElementById("user-table-body");
-      tableBody.innerHTML = data.length
-        ? data.map(user => `
-          <tr onclick="selectUser(${user.id}, '${user.first_name}', '${user.last_name}', '${user.phone_number}', '${user.email}', '${user.password}')">
-            <td>${user.first_name || "N/A"}</td>
-            <td>${user.last_name || "N/A"}</td>
-            <td>${user.phone_number || "N/A"}</td>
-            <td>${user.email || "N/A"}</td>
-          </tr>`).join("")
-        : "<tr><td colspan='4'>No users found.</td></tr>";
+    function renderClients(data) {
+      const table = document.getElementById("client-table");
+      table.innerHTML = data.length
+        ? data.map(client => `
+          <tr onclick="selectClient(${client.id}, '${client.first_name}', '${client.last_name}', '${client.email}', '${client.phone_number}')">
+            <td>${client.first_name}</td>
+            <td>${client.last_name}</td>
+            <td>${client.email}</td>
+            <td>${client.phone_number}</td>
+          </tr>
+        `).join("")
+        : "<tr><td colspan='4'>No clients found.</td></tr>";
     }
 
-    // Select User for Editing
-    function selectUser(id, firstName, lastName, phoneNumber, email, password) {
-      selectedUserId = id;
-      document.getElementById("update-first-name").value = firstName || "";
-      document.getElementById("update-last-name").value = lastName || "";
-      document.getElementById("update-email").value = email || "";
-      document.getElementById("update-phone-number").value = phoneNumber || "";
-      document.getElementById("update-password").value = password || "";
-      document.getElementById("user-form").style.display = "block";
+    function filterClients() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = clients.filter(client =>
+        (client.first_name || "").toLowerCase().includes(query) ||
+        (client.last_name || "").toLowerCase().includes(query) ||
+        (client.email || "").toLowerCase().includes(query) ||
+        (client.phone_number || "").toLowerCase().includes(query)
+      );
+      renderClients(filtered);
     }
 
-    // Save Updated User
-    async function saveUser() {
-      const updatedUser = {
-        first_name: document.getElementById("update-first-name").value.trim(),
-        last_name: document.getElementById("update-last-name").value.trim(),
-        email: document.getElementById("update-email").value.trim(),
-        phone_number: document.getElementById("update-phone-number").value.trim(),
-        password: document.getElementById("update-password").value.trim() || "default123"
+    function selectClient(id, firstName, lastName, email, phone) {
+      selectedClientId = id;
+      document.getElementById("first-name").value = firstName || "";
+      document.getElementById("last-name").value = lastName || "";
+      document.getElementById("email").value = email || "";
+      document.getElementById("phone").value = phone || "";
+    }
+
+    async function saveClient() {
+      const updatedClient = {
+        first_name: document.getElementById("first-name").value.trim(),
+        last_name: document.getElementById("last-name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone_number: document.getElementById("phone").value.trim(),
+        password: document.getElementById("password").value.trim()
       };
 
       try {
-        if (selectedUserId) {
-          const { error } = await supabase.from("users").update(updatedUser).eq("id", selectedUserId);
+        if (selectedClientId) {
+          const { error } = await supabase
+            .from("users")
+            .update(updatedClient)
+            .eq("id", selectedClientId);
           if (error) throw error;
-          alert("User updated successfully!");
+          alert("Client updated successfully!");
+        } else {
+          alert("No client selected!");
         }
-        loadUsers();
-        cancelEdit();
+        loadClients();
+        clearFields();
       } catch (error) {
-        console.error("Error saving user:", error);
-        alert("Failed to save user.");
+        console.error("Error saving client:", error);
       }
     }
 
-    // Delete User
-    async function deleteUser() {
-      if (!selectedUserId) return;
-
+    async function deleteClient() {
+      if (!selectedClientId) {
+        alert("No client selected!");
+        return;
+      }
       try {
-        const { error } = await supabase.from("users").delete().eq("id", selectedUserId);
+        const { error } = await supabase
+          .from("users")
+          .delete()
+          .eq("id", selectedClientId);
         if (error) throw error;
-        alert("User deleted successfully!");
-        loadUsers();
-        cancelEdit();
+        alert("Client deleted successfully!");
+        loadClients();
+        clearFields();
       } catch (error) {
-        console.error("Error deleting user:", error);
-        alert("Failed to delete user.");
+        console.error("Error deleting client:", error);
       }
     }
 
-    // Cancel Edit
-    function cancelEdit() {
-      document.getElementById("user-form").style.display = "none";
-      selectedUserId = null;
+    function clearFields() {
+      document.getElementById("first-name").value = "";
+      document.getElementById("last-name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("password").value = "";
+      selectedClientId = null;
     }
 
-    // Filter Users Based on Input
-    function filterUsers() {
-      const query = document.getElementById("search-input").value.toLowerCase();
-      const filtered = users.filter(user =>
-        (user.first_name || "").toLowerCase().includes(query) ||
-        (user.last_name || "").toLowerCase().includes(query) ||
-        (user.phone_number || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query)
-      );
-      renderUsers(filtered);
-    }
-
-    // Load Users on Page Load
-    document.addEventListener("DOMContentLoaded", loadUsers);
+    document.addEventListener("DOMContentLoaded", loadClients);
   </script>
 </body>
 </html>
