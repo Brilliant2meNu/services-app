@@ -73,6 +73,11 @@
       background-color: #6c757d;
       color: white;
     }
+
+    .add {
+      background-color: #28a745;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -105,6 +110,7 @@
       <button class="delete" onclick="deleteClient()">Delete User</button>
       <button class="cancel" onclick="clearFields()">Cancel</button>
       <button class="save" onclick="saveClient()">Save</button>
+      <button class="add" onclick="addClient()">Add User</button>
     </div>
   </div>
 
@@ -186,6 +192,26 @@
         clearFields();
       } catch (error) {
         console.error("Error saving client:", error);
+      }
+    }
+
+    async function addClient() {
+      const newClient = {
+        first_name: document.getElementById("first-name").value.trim(),
+        last_name: document.getElementById("last-name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone_number: document.getElementById("phone").value.trim(),
+        password: document.getElementById("password").value.trim()
+      };
+
+      try {
+        const { error } = await supabase.from("users").insert(newClient);
+        if (error) throw error;
+        alert("New client added successfully!");
+        loadClients();
+        clearFields();
+      } catch (error) {
+        console.error("Error adding client:", error);
       }
     }
 
