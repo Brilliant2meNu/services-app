@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Search</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      margin: 20px auto;
+      text-align: center;
+      padding: 20px;
+      border-radius: 5px;
+      background: white;
+      max-width: 600px;
+    }
+
+    h1 {
+      color: #007BFF;
+    }
+
+    .search-box input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Client Search</h1>
+    <input type="text" id="search-input" placeholder="Search by name, phone, or email..." oninput="filterUsers()" />
+    <p class="error" id="error-message"></p>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Phone Number</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="user-table-body">
+        <tr><td colspan="4">Loading users...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Initialize Supabase Client
+    const supabase = window.supabase.createClient(
+      "https://ovmdpupofhhudxhitoov.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+    );
+
+    let users = [];
+
+    // Load Users from Supabase
+    async function loadUsers() {
+      const tableBody = document.getElementById("user-table-body");
+      try {
+        const { data, error } = await supabase.from("users").select("*");
+        if (error) throw error;
+
+        users = data || [];
+        renderUsers(users);
+      } catch (error) {
+        console.error("Error loading users:", error);
+        tableBody.innerHTML = "<tr><td colspan='4'>Error loading users.</td></tr>";
+      }
+    }
+
+    // Render Users in Table
+    function renderUsers(data) {
+      const tableBody = document.getElementById("user-table-body");
+      tableBody.innerHTML = data.length
+        ? data.map(user => `
+          <tr>
+            <td>${user.first_name || "N/A"}</td>
+            <td>${user.last_name || "N/A"}</td>
+            <td>${user.phone_number || "N/A"}</td>
+            <td>${user.email || "N/A"}</td>
+          </tr>`).join("")
+        : "<tr><td colspan='4'>No users found.</td></tr>";
+    }
+
+    // Filter Users Based on Input
+    function filterUsers() {
+      const query = document.getElementById("search-input").value.toLowerCase();
+      const filtered = users.filter(user =>
+        (user.first_name || "").toLowerCase().includes(query) ||
+        (user.last_name || "").toLowerCase().includes(query) ||
+        (user.phone_number || "").toLowerCase().includes(query) ||
+        (user.email || "").toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
+    // Load Users on Page Load
+    document.addEventListener("DOMContentLoaded", loadUsers);
+  </script>
+</body>
+</html>
