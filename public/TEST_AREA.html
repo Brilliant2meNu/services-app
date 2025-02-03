@@ -115,12 +115,17 @@
   </div>
 
   <script>
-    const supabase = supabase.createClient(
-      "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
-    );
+    let supabase;
     let clients = [];
     let selectedClientId = null;
+
+    // Initialize Supabase client
+    function initializeSupabase() {
+      supabase = window.supabase.createClient(
+        "https://ovmdpupofhhudxhitoov.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+      );
+    }
 
     async function loadClients() {
       const table = document.getElementById("client-table");
@@ -243,7 +248,10 @@
       selectedClientId = null;
     }
 
-    document.addEventListener("DOMContentLoaded", loadClients);
+    document.addEventListener("DOMContentLoaded", () => {
+      initializeSupabase();
+      loadClients();
+    });
   </script>
 </body>
 </html>
