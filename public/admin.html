@@ -6,7 +6,6 @@
   <title>Client Management</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    /* Minimal styling */
     body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; }
     .container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 5px; }
     table { width: 100%; margin: 20px 0; border-collapse: collapse; }
@@ -85,7 +84,7 @@
       const table = document.getElementById("client-table");
       table.innerHTML = data.length
         ? data.map(client => `
-          <tr onclick="selectClient('${client.id}', '${client.first_name}', '${client.last_name}', '${client.email}', '${client.phone_number}')">
+          <tr onclick="selectClient('${client.id}', '${client.first_name}', '${client.last_name}', '${client.email}', '${client.phone_number}', '${client.password}')">
             <td>${client.first_name || ""}</td>
             <td>${client.last_name || ""}</td>
             <td>${client.email || ""}</td>
@@ -106,12 +105,13 @@
       renderClients(filtered);
     }
 
-    function selectClient(id, firstName, lastName, email, phone) {
+    function selectClient(id, firstName, lastName, email, phone, password) {
       selectedClientId = id;
       document.getElementById("first-name").value = firstName || "";
       document.getElementById("last-name").value = lastName || "";
       document.getElementById("email").value = email || "";
       document.getElementById("phone").value = phone || "";
+      document.getElementById("password").value = password || "";
     }
 
     async function saveClient() {
