@@ -3,32 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guest Dashboard</title>
+  <title>Welcome - Beauty Assistant</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background-color: #f8f9fa; }
-    .container { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+    .container { margin: 20px auto; max-width: 400px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
     h1 { color: #007bff; }
-    .button { display: inline-block; margin: 10px; padding: 10px 20px; border-radius: 5px; color: white; text-decoration: none; }
-    .quiz-btn { background-color: #007bff; }
-    .booking-btn { background-color: #28a745; }
-    .contact-btn { background-color: #6c757d; }
+    input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; width: 95%; }
+    .login-btn { background-color: #007bff; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to Beauty By Jing Meiko!</h1>
-    <p>Your personal guide to skincare and beauty solutions.</p>
-    
-    <a href="#quiz" class="button quiz-btn" onclick="startBeautyQuiz()">Take the Beauty Quiz</a>
-    <a href="https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services" 
-       class="button booking-btn" target="_blank">Book an Appointment</a>
-    <a href="https://www.beautybyjingmeiko.com/contact" class="button contact-btn" target="_blank">Contact Us</a>
-  </div>
+    <h1>Welcome to Beauty Assistant!</h1>
+    <p>Enter your details to get started.</p>
 
-  <!-- Quiz Modal -->
-  <div id="quiz-modal" style="display:none;">
-    <!-- Quiz Content Goes Here -->
+    <input type="text" id="first-name" placeholder="First Name">
+    <input type="text" id="last-name" placeholder="Last Name">
+    <input type="password" id="password" placeholder="Create a Password">
+
+    <button class="login-btn" onclick="handleUserAuth()">Continue</button>
   </div>
 
   <script>
@@ -37,9 +32,47 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     );
 
-    function startBeautyQuiz() {
-      alert("Launching quiz... Coming soon!");
-      // Logic for opening quiz modal, collecting answers, and storing them
+    async function handleUserAuth() {
+      const firstName = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!firstName || !lastName || !password) {
+        alert("Please enter your full name and password.");
+        return;
+      }
+
+      // Check if user exists
+      const { data: existingUser, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("first_name", firstName)
+        .eq("last_name", lastName)
+        .eq("password", password);
+
+      if (error) {
+        console.error("Error checking user:", error);
+        alert("An error occurred. Please try again.");
+        return;
+      }
+
+      if (existingUser.length > 0) {
+        alert(`Welcome back, ${firstName}!`);
+        window.location.href = "Guest_Dashboard.html"; // Redirect to guest dashboard
+      } else {
+        // Register new guest user
+        const { error: insertError } = await supabase.from("users").insert([
+          { first_name: firstName, last_name: lastName, password: password, role: "guest" }
+        ]);
+
+        if (insertError) {
+          console.error("Error creating user:", insertError);
+          alert("An error occurred while creating your account.");
+        } else {
+          alert(`You're all set, ${firstName}! Redirecting to your dashboard.`);
+          window.location.href = "Guest_Dashboard.html";
+        }
+      }
     }
   </script>
 </body>
