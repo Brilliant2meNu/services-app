@@ -3,42 +3,72 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { message, step, isInitialLaunch } = req.body;
+    const { message, step, userData, isInitialLaunch } = req.body;
 
-    // Handle initial greeting if it's the first interaction
     if (isInitialLaunch && step === 'greet') {
         return res.status(200).json({
-            reply: "Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs. To get started, please log into your account if you're an existing client, or type your first name and email so we can assist you better."
+            reply: "Hey gorgeous! 💖 Welcome to our salon assistant. What’s your first name?"
         });
     }
 
-    // Handle user interactions after the initial greeting
-    if (!message) {
-        return res.status(400).json({ error: 'Message is required' });
+    if (step === "collectFirstName") {
+        if (!message) {
+            return res.status(200).json({ reply: "Oops! I didn’t catch that. What’s your first name?" });
+        }
+
+        return res.status(200).json({
+            reply: `Nice to meet you, ${message}! 💕 Would you like to take a quick beauty quiz for custom skincare recommendations? Type 'yes' or 'no'.`,
+            userData: { firstName: message }
+        });
     }
 
-    try {
-        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    if (step === "startQuiz") {
+        if (message.toLowerCase() === "yes") {
+            return res.status(200).json({
+                reply: "Awesome! First question: How would you describe your skin type? (Oily, Dry, Combination, Sensitive)",
+                userData: { quizStarted: true }
+            });
+        } else {
+            return res.status(200).json({
+                reply: "No worries! You can browse our services anytime. 💖 Let me know if you need anything."
+            });
+        }
+    }
+
+    if (step === "askLastName") {
+        return res.status(200).json({
+            reply: "Before we continue, can you share your last name? This helps personalize your skincare plan. 😊",
+            userData: { ...userData, firstName: message }
+        });
+    }
+
+    if (step === "askPassword") {
+        return res.status(200).json({
+            reply: "Last step! Create a password for easy access to your personalized skincare plan. 🔒",
+            userData: { ...userData, lastName: message }
+        });
+    }
+
+    if (step === "saveUser") {
+        const { firstName, lastName } = userData;
+        const password = message;
+
+        // Call the user save function (see save-user.js update below)
+        const response = await fetch("https://your-app-url.com/api/save-user", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-4",
-                messages: [
-                    { role: "system", content: "You are a helpful assistant." },
-                    { role: "user", content: message }
-                ]
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ firstName, lastName, password })
         });
 
-        const data = await openaiResponse.json();
-        if (!openaiResponse.ok) throw new Error(data.error.message);
+        const data = await response.json();
+        if (data.error) {
+            return res.status(500).json({ reply: "Oops! Something went wrong. Try again later." });
+        }
 
-        res.status(200).json({ reply: data.choices[0].message.content });
-    } catch (error) {
-        console.error("Error communicating with OpenAI:", error);
-        res.status(500).json({ error: "Failed to fetch GPT response" });
+        return res.status(200).json({
+            reply: `You're all set, ${firstName}! 🎉 You can now log in anytime with just your first and last name + password. Want to continue your beauty quiz now?`
+        });
     }
+
+    return res.status(400).json({ error: "Invalid request." });
 }
