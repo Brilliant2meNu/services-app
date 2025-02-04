@@ -59,6 +59,7 @@
       // Clear previous messages
       statusMessage.textContent = "";
 
+      // Get updated data
       const updatedUser = {
         first_name: document.getElementById("first-name").value.trim(),
         last_name: document.getElementById("last-name").value.trim(),
@@ -67,6 +68,7 @@
         password: document.getElementById("password").value.trim(),
       };
 
+      // Basic validation
       if (!updatedUser.first_name || !updatedUser.last_name || !updatedUser.password) {
         statusMessage.textContent = "First Name, Last Name, and Password are required.";
         statusMessage.style.color = "red";
@@ -74,11 +76,11 @@
       }
 
       try {
-        // Update user data in Supabase
+        // Update ONLY this user's data
         const { error } = await supabase
           .from("users")
           .update(updatedUser)
-          .eq("id", user.id);
+          .eq("id", user.id); // Restrict to user's own ID
 
         if (error) throw error;
 
