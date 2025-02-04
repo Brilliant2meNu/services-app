@@ -34,11 +34,11 @@ async function loginUser() {
     statusMessage.textContent = `Welcome back, ${user.first_name}!`;
     statusMessage.style.color = "green";
 
-    // Store user info (optional)
+    // Store user info in localStorage
     localStorage.setItem("loggedInUser", JSON.stringify(user));
 
     // Redirect to dashboard
-    window.location.href = "Guest_Dashboard_PROTO.html"; // Change this to your actual dashboard page
+    window.location.href = "Guest_Dashboard_PROTO.html"; // Points to your dashboard page
 
   } catch (err) {
     console.error("Unexpected error:", err);
