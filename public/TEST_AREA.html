@@ -1,122 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
-    .modal { 
-      display: none; 
-      position: fixed; 
-      top: 50%; 
-      left: 50%; 
-      transform: translate(-50%, -50%); 
-      background: white; 
-      padding: 20px; 
-      border-radius: 5px; 
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-      z-index: 10; 
-    }
-    .overlay { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0, 0, 0, 0.5); 
-      z-index: 5; 
-    }
-    .modal h1 { color: #007bff; }
-    input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; width: 95%; background-color: #007bff; }
-    #status-message { margin-top: 10px; font-size: 14px; }
-    .close-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 5px; float: right; }
-  </style>
-</head>
-<body>
-  <button onclick="openLoginModal()">Login</button>
+async function loginUser() {
+  const firstName = document.getElementById("first-name").value.trim();
+  const lastName = document.getElementById("last-name").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const statusMessage = document.getElementById("status-message");
 
-  <!-- Modal -->
-  <div class="overlay" id="overlay" onclick="closeLoginModal()"></div>
-  <div class="modal" id="login-modal">
-    <button class="close-btn" onclick="closeLoginModal()">X</button>
-    <h1>Login</h1>
-    <p>Log in with your first name, last name, and password.</p>
+  // Clear any previous messages
+  statusMessage.textContent = "";
 
-    <input type="text" id="first-name" placeholder="First Name">
-    <input type="text" id="last-name" placeholder="Last Name">
-    <input type="password" id="password" placeholder="Password">
+  if (!firstName || !lastName || !password) {
+    statusMessage.textContent = "Please fill in all fields.";
+    statusMessage.style.color = "red";
+    return;
+  }
 
-    <button onclick="loginUser()">Log In</button>
-    <p id="status-message"></p>
-  </div>
+  try {
+    // Validate user credentials
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("first_name", firstName)
+      .eq("last_name", lastName)
+      .eq("password", password)
+      .single(); // Ensure only one user is returned
 
-  <script>
-    // Initialize Supabase client
-    const supabase = window.supabase.createClient(
-      "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
-    );
-
-    async function loginUser() {
-      const firstName = document.getElementById("first-name").value.trim();
-      const lastName = document.getElementById("last-name").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const statusMessage = document.getElementById("status-message");
-
-      // Clear any previous messages
-      statusMessage.textContent = "";
-
-      if (!firstName || !lastName || !password) {
-        statusMessage.textContent = "Please fill in all fields.";
-        statusMessage.style.color = "red";
-        return;
-      }
-
-      try {
-        // Validate user credentials
-        const { data: user, error } = await supabase
-          .from("users")
-          .select("*")
-          .eq("first_name", firstName)
-          .eq("last_name", lastName)
-          .eq("password", password)
-          .single(); // Ensure only one user is returned
-
-        if (error || !user) {
-          console.error("Login failed:", error);
-          statusMessage.textContent = "Invalid credentials. Please try again.";
-          statusMessage.style.color = "red";
-          return;
-        }
-
-        // Success
-        statusMessage.textContent = `Welcome back, ${user.first_name}!`;
-        statusMessage.style.color = "green";
-        closeLoginModal();
-
-        // Redirect to dashboard or perform further actions
-        console.log("Logged-in user:", user);
-
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        statusMessage.textContent = "An unexpected error occurred. Try again.";
-        statusMessage.style.color = "red";
-      }
+    if (error || !user) {
+      console.error("Login failed:", error);
+      statusMessage.textContent = "Invalid credentials. Please try again.";
+      statusMessage.style.color = "red";
+      return;
     }
 
-    function openLoginModal() {
-      document.getElementById("overlay").style.display = "block";
-      document.getElementById("login-modal").style.display = "block";
-    }
+    // Success
+    statusMessage.textContent = `Welcome back, ${user.first_name}!`;
+    statusMessage.style.color = "green";
 
-    function closeLoginModal() {
-      document.getElementById("overlay").style.display = "none";
-      document.getElementById("login-modal").style.display = "none";
-    }
-  </script>
-</body>
-</html>
+    // Store user info (optional)
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+
+    // Redirect to dashboard
+    window.location.href = "Guest_Dashboard_PROTO.html"; // Change this to your actual dashboard page
+
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    statusMessage.textContent = "An unexpected error occurred. Try again.";
+    statusMessage.style.color = "red";
+  }
+}
