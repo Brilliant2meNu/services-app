@@ -3,25 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Page</title>
+  <title>Guest Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+    body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; }
     .container { margin: 20px auto; max-width: 400px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
     h1 { color: #007bff; }
     input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
     button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; width: 95%; }
-    .login-btn { background-color: #007bff; }
+    .update-btn { background-color: #007bff; }
     #status-message { margin-top: 10px; font-size: 14px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Login</h1>
+    <h1>Welcome to Your Dashboard</h1>
+    <p>Update your information below:</p>
     <input type="text" id="first-name" placeholder="First Name">
     <input type="text" id="last-name" placeholder="Last Name">
+    <input type="email" id="email" placeholder="Email">
+    <input type="text" id="phone" placeholder="Phone Number">
     <input type="password" id="password" placeholder="Password">
-    <button class="login-btn" onclick="loginUser()">Login</button>
+    <button class="update-btn" onclick="updateUser()">Update</button>
     <p id="status-message"></p>
   </div>
 
@@ -32,51 +35,63 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
 
-    async function loginUser() {
-      const firstName = document.getElementById("first-name").value.trim();
-      const lastName = document.getElementById("last-name").value.trim();
-      const password = document.getElementById("password").value.trim();
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+      if (!user) {
+        alert("You are not logged in!");
+        window.location.href = "login.html"; // Redirect to login page
+        return;
+      }
+
+      // Populate fields with user data
+      document.getElementById("first-name").value = user.first_name || "";
+      document.getElementById("last-name").value = user.last_name || "";
+      document.getElementById("email").value = user.email || "";
+      document.getElementById("phone").value = user.phone_number || "";
+      document.getElementById("password").value = ""; // Never pre-fill passwords
+    });
+
+    async function updateUser() {
+      const user = JSON.parse(localStorage.getItem("loggedInUser"));
       const statusMessage = document.getElementById("status-message");
 
-      // Clear any previous messages
+      // Clear previous messages
       statusMessage.textContent = "";
 
-      if (!firstName || !lastName || !password) {
-        statusMessage.textContent = "Please fill in all fields.";
+      const updatedUser = {
+        first_name: document.getElementById("first-name").value.trim(),
+        last_name: document.getElementById("last-name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone_number: document.getElementById("phone").value.trim(),
+        password: document.getElementById("password").value.trim(),
+      };
+
+      if (!updatedUser.first_name || !updatedUser.last_name || !updatedUser.password) {
+        statusMessage.textContent = "First Name, Last Name, and Password are required.";
         statusMessage.style.color = "red";
         return;
       }
 
       try {
-        // Validate user credentials
-        const { data: user, error } = await supabase
+        // Update user data in Supabase
+        const { error } = await supabase
           .from("users")
-          .select("*")
-          .eq("first_name", firstName)
-          .eq("last_name", lastName)
-          .eq("password", password)
-          .single();
+          .update(updatedUser)
+          .eq("id", user.id);
 
-        if (error || !user) {
-          console.error("Login failed:", error);
-          statusMessage.textContent = "Invalid credentials. Please try again.";
-          statusMessage.style.color = "red";
-          return;
-        }
+        if (error) throw error;
 
-        // Success
-        statusMessage.textContent = `Welcome back, ${user.first_name}!`;
+        // Update successful
+        statusMessage.textContent = "Your information has been updated successfully!";
         statusMessage.style.color = "green";
 
-        // Store user info
-        localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-        // Redirect to the dashboard
-        window.location.href = "Guest_Dashboard_PROTO.html";
-
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        statusMessage.textContent = "An unexpected error occurred. Try again.";
+        // Update localStorage with new data
+        const refreshedUser = { ...user, ...updatedUser };
+        localStorage.setItem("loggedInUser", JSON.stringify(refreshedUser));
+      } catch (error) {
+        console.error("Error updating user:", error);
+        statusMessage.textContent = "An error occurred. Please try again.";
         statusMessage.style.color = "red";
       }
     }
