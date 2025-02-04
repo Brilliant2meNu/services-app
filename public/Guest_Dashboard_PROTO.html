@@ -1,62 +1,78 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guest Dashboard</title>
+  <title>Welcome - Beauty Assistant</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; background-color: #f8f9fa; }
-    .container { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+    .container { margin: 20px auto; max-width: 400px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
     h1 { color: #007bff; }
     input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; }
-    .update { background-color: #007bff; }
-    .logout { background-color: #ff4d4d; }
+    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; width: 95%; }
+    .login-btn { background-color: #007bff; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Guest Dashboard</h1>
-    <p>Welcome, Guest! You can update your credentials here.</p>
+    <h1>Welcome to Beauty Assistant!</h1>
+    <p>Enter your details to get started.</p>
 
-    <input type="email" id="guest-email" placeholder="New Email">
-    <input type="password" id="guest-password" placeholder="New Password">
-    
-    <button class="update" onclick="updateGuestCredentials()">Update Credentials</button>
-    <button class="logout" onclick="logout()">Logout</button>
+    <input type="text" id="first-name" placeholder="First Name">
+    <input type="text" id="last-name" placeholder="Last Name">
+    <input type="password" id="password" placeholder="Create a Password">
+
+    <button class="login-btn" onclick="handleUserAuth()">Continue</button>
   </div>
 
   <script>
     const supabase = window.supabase.createClient(
       "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     );
 
-    async function updateGuestCredentials() {
-      const email = document.getElementById("guest-email").value.trim();
-      const password = document.getElementById("guest-password").value.trim();
+    async function handleUserAuth() {
+      const firstName = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+      const password = document.getElementById("password").value.trim();
 
-      if (!email || !password) {
-        alert("Please enter an email and password.");
+      if (!firstName || !lastName || !password) {
+        alert("Please enter your full name and password.");
         return;
       }
 
-      const { data, error } = await supabase.auth.updateUser({ email, password });
+      // Check if user exists
+      const { data: existingUser, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("first_name", firstName)
+        .eq("last_name", lastName)
+        .eq("password", password);
 
       if (error) {
-        alert("Error updating credentials: " + error.message);
-      } else {
-        alert("Credentials updated successfully!");
+        console.error("Error checking user:", error);
+        alert("An error occurred. Please try again.");
+        return;
       }
-    }
 
-    function logout() {
-      supabase.auth.signOut().then(() => {
-        alert("Logged out!");
-        window.location.href = "index.html"; // Redirect back to login page
-      });
+      if (existingUser.length > 0) {
+        alert(`Welcome back, ${firstName}!`);
+        window.location.href = "Guest_Dashboard.html"; // Redirect to guest dashboard
+      } else {
+        // Register new guest user
+        const { error: insertError } = await supabase.from("users").insert([
+          { first_name: firstName, last_name: lastName, password: password, role: "guest" }
+        ]);
+
+        if (insertError) {
+          console.error("Error creating user:", insertError);
+          alert("An error occurred while creating your account.");
+        } else {
+          alert(`You're all set, ${firstName}! Redirecting to your dashboard.`);
+          window.location.href = "Guest_Dashboard.html";
+        }
+      }
     }
   </script>
 </body>
