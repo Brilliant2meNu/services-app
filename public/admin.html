@@ -9,37 +9,53 @@
     body { font-family: Arial, sans-serif; text-align: center; background-color: #f8f9fa; }
     .container { margin: 20px auto; max-width: 600px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
     h1 { color: #007bff; }
-    .button { display: inline-block; margin: 10px; padding: 10px 20px; border-radius: 5px; color: white; text-decoration: none; }
-    .quiz-btn { background-color: #007bff; }
-    .booking-btn { background-color: #28a745; }
-    .contact-btn { background-color: #6c757d; }
+    input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; }
+    .update { background-color: #007bff; }
+    .logout { background-color: #ff4d4d; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to Beauty By Jing Meiko!</h1>
-    <p>Your personal guide to skincare and beauty solutions.</p>
-    
-    <a href="#quiz" class="button quiz-btn" onclick="startBeautyQuiz()">Take the Beauty Quiz</a>
-    <a href="https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services" 
-       class="button booking-btn" target="_blank">Book an Appointment</a>
-    <a href="https://www.beautybyjingmeiko.com/contact" class="button contact-btn" target="_blank">Contact Us</a>
-  </div>
+    <h1>Guest Dashboard</h1>
+    <p>Welcome, Guest! You can update your credentials here.</p>
 
-  <!-- Quiz Modal -->
-  <div id="quiz-modal" style="display:none;">
-    <!-- Quiz Content Goes Here -->
+    <input type="email" id="guest-email" placeholder="New Email">
+    <input type="password" id="guest-password" placeholder="New Password">
+    
+    <button class="update" onclick="updateGuestCredentials()">Update Credentials</button>
+    <button class="logout" onclick="logout()">Logout</button>
   </div>
 
   <script>
     const supabase = window.supabase.createClient(
       "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
     );
 
-    function startBeautyQuiz() {
-      alert("Launching quiz... Coming soon!");
-      // Logic for opening quiz modal, collecting answers, and storing them
+    async function updateGuestCredentials() {
+      const email = document.getElementById("guest-email").value.trim();
+      const password = document.getElementById("guest-password").value.trim();
+
+      if (!email || !password) {
+        alert("Please enter an email and password.");
+        return;
+      }
+
+      const { data, error } = await supabase.auth.updateUser({ email, password });
+
+      if (error) {
+        alert("Error updating credentials: " + error.message);
+      } else {
+        alert("Credentials updated successfully!");
+      }
+    }
+
+    function logout() {
+      supabase.auth.signOut().then(() => {
+        alert("Logged out!");
+        window.location.href = "index.html"; // Redirect back to login page
+      });
     }
   </script>
 </body>
