@@ -1,48 +1,78 @@
-async function loginUser() {
-  const firstName = document.getElementById("first-name").value.trim();
-  const lastName = document.getElementById("last-name").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const statusMessage = document.getElementById("status-message");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; }
+    .container { margin: 20px auto; max-width: 400px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    h1 { color: #007bff; }
+    input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; width: 95%; }
+    .login-btn { background-color: #007bff; }
+    #status-message { margin-top: 10px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <input type="text" id="first-name" placeholder="First Name">
+    <input type="text" id="last-name" placeholder="Last Name">
+    <input type="password" id="password" placeholder="Password">
+    <button class="login-btn" onclick="loginUser()">Login</button>
+    <p id="status-message"></p>
+  </div>
 
-  // Clear any previous messages
-  statusMessage.textContent = "";
+  <script>
+    async function loginUser() {
+      const firstName = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const statusMessage = document.getElementById("status-message");
 
-  if (!firstName || !lastName || !password) {
-    statusMessage.textContent = "Please fill in all fields.";
-    statusMessage.style.color = "red";
-    return;
-  }
+      // Clear any previous messages
+      statusMessage.textContent = "";
 
-  try {
-    // Validate user credentials
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("first_name", firstName)
-      .eq("last_name", lastName)
-      .eq("password", password)
-      .single(); // Ensure only one user is returned
+      if (!firstName || !lastName || !password) {
+        statusMessage.textContent = "Please fill in all fields.";
+        statusMessage.style.color = "red";
+        return;
+      }
 
-    if (error || !user) {
-      console.error("Login failed:", error);
-      statusMessage.textContent = "Invalid credentials. Please try again.";
-      statusMessage.style.color = "red";
-      return;
+      try {
+        // Validate user credentials
+        const { data: user, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("first_name", firstName)
+          .eq("last_name", lastName)
+          .eq("password", password)
+          .single();
+
+        if (error || !user) {
+          console.error("Login failed:", error);
+          statusMessage.textContent = "Invalid credentials. Please try again.";
+          statusMessage.style.color = "red";
+          return;
+        }
+
+        // Success
+        statusMessage.textContent = `Welcome back, ${user.first_name}!`;
+        statusMessage.style.color = "green";
+
+        // Store user info
+        localStorage.setItem("loggedInUser", JSON.stringify(user));
+
+        // Redirect to the dashboard
+        window.location.href = "Guest_Dashboard_PROTO.html";
+
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        statusMessage.textContent = "An unexpected error occurred. Try again.";
+        statusMessage.style.color = "red";
+      }
     }
-
-    // Success
-    statusMessage.textContent = `Welcome back, ${user.first_name}!`;
-    statusMessage.style.color = "green";
-
-    // Store user info (optional)
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
-
-    // Redirect to the Guest Dashboard
-    window.location.href = "Guest_Dashboard_PROTO.html"; // Corrected to your actual page
-
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    statusMessage.textContent = "An unexpected error occurred. Try again.";
-    statusMessage.style.color = "red";
-  }
-}
+  </script>
+</body>
+</html>
