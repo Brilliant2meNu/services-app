@@ -3,99 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guest Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <title>Guest Chat</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; }
-    .container { margin: 20px auto; max-width: 400px; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-    h1 { color: #007bff; }
-    input { display: block; width: 90%; margin: 10px auto; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; width: 95%; }
-    .update-btn { background-color: #007bff; }
-    #status-message { margin-top: 10px; font-size: 14px; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 400px;
+      max-width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .chat-display {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 8px;
+      max-width: 70%;
+    }
+
+    .message.user {
+      background-color: #007bff;
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    .message.bot {
+      background-color: #e9ecef;
+      color: #333;
+      align-self: flex-start;
+    }
+
+    .chat-input-container {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      background-color: #f8f9fa;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    .icon-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .icon-button img {
+      width: 20px;
+      height: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to Your Dashboard</h1>
-    <p>Update your information below:</p>
-    <input type="text" id="first-name" placeholder="First Name">
-    <input type="text" id="last-name" placeholder="Last Name">
-    <input type="email" id="email" placeholder="Email">
-    <input type="text" id="phone" placeholder="Phone Number">
-    <input type="password" id="password" placeholder="Password">
-    <button class="update-btn" onclick="updateUser()">Update</button>
-    <p id="status-message"></p>
+  <div class="chat-container">
+    <div class="chat-header">Salon Chat Assistant</div>
+    <div class="chat-display" id="chat-display"></div>
+    <div class="chat-input-container">
+      <input
+        type="text"
+        class="chat-input"
+        id="chat-input"
+        placeholder="Type your message..."
+      />
+      <button class="icon-button" onclick="sendMessage('text')">
+        <img src="keyboard-icon.png" alt="Keyboard Icon" />
+      </button>
+      <button class="icon-button" onclick="sendMessage('voice')">
+        <img src="mic-icon.png" alt="Microphone Icon" />
+      </button>
+    </div>
   </div>
 
   <script>
-    // Initialize Supabase client
-    const supabase = window.supabase.createClient(
-      "https://ovmdpupofhhudxhitoov.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
-    );
+    const chatDisplay = document.getElementById("chat-display");
+    const chatInput = document.getElementById("chat-input");
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    // Function to display a message in the chat
+    function addMessage(content, sender) {
+      const messageElement = document.createElement("div");
+      messageElement.className = `message ${sender}`;
+      messageElement.textContent = content;
+      chatDisplay.appendChild(messageElement);
+      chatDisplay.scrollTop = chatDisplay.scrollHeight;
+    }
 
-      if (!user) {
-        alert("You are not logged in!");
-        window.location.href = "login.html"; // Redirect to login page
-        return;
-      }
+    // Function to handle sending messages
+    async function sendMessage(type) {
+      const message = type === "text" ? chatInput.value.trim() : "Voice message (placeholder)";
+      if (!message) return;
 
-      // Populate fields with user data
-      document.getElementById("first-name").value = user.first_name || "";
-      document.getElementById("last-name").value = user.last_name || "";
-      document.getElementById("email").value = user.email || "";
-      document.getElementById("phone").value = user.phone_number || "";
-      document.getElementById("password").value = ""; // Never pre-fill passwords
-    });
+      addMessage(message, "user");
+      chatInput.value = "";
 
-    async function updateUser() {
-      const user = JSON.parse(localStorage.getItem("loggedInUser"));
-      const statusMessage = document.getElementById("status-message");
-
-      // Clear previous messages
-      statusMessage.textContent = "";
-
-      // Get updated data
-      const updatedUser = {
-        first_name: document.getElementById("first-name").value.trim(),
-        last_name: document.getElementById("last-name").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        phone_number: document.getElementById("phone").value.trim(),
-        password: document.getElementById("password").value.trim(),
-      };
-
-      // Basic validation
-      if (!updatedUser.first_name || !updatedUser.last_name || !updatedUser.password) {
-        statusMessage.textContent = "First Name, Last Name, and Password are required.";
-        statusMessage.style.color = "red";
-        return;
-      }
-
-      try {
-        // Update ONLY this user's data
-        const { error } = await supabase
-          .from("users")
-          .update(updatedUser)
-          .eq("id", user.id); // Restrict to user's own ID
-
-        if (error) throw error;
-
-        // Update successful
-        statusMessage.textContent = "Your information has been updated successfully!";
-        statusMessage.style.color = "green";
-
-        // Update localStorage with new data
-        const refreshedUser = { ...user, ...updatedUser };
-        localStorage.setItem("loggedInUser", JSON.stringify(refreshedUser));
-      } catch (error) {
-        console.error("Error updating user:", error);
-        statusMessage.textContent = "An error occurred. Please try again.";
-        statusMessage.style.color = "red";
-      }
+      // Mock response from bot (replace this with your API call)
+      setTimeout(() => {
+        addMessage("Thanks for your message! How can I help you?", "bot");
+      }, 1000);
     }
   </script>
 </body>
