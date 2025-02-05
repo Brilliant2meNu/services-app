@@ -10,22 +10,44 @@
       background-color: #f8f9fa;
       margin: 0;
       padding: 0;
+    }
+
+    .launcher {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #007bff;
+      color: #fff;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .launcher img {
+      width: 32px;
+      height: 32px;
     }
 
     .chat-container {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
       width: 400px;
       max-width: 100%;
       border: 1px solid #ccc;
       border-radius: 8px;
       background-color: #fff;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      display: flex;
+      display: none;
       flex-direction: column;
       overflow: hidden;
+      z-index: 999;
     }
 
     .chat-header {
@@ -42,25 +64,6 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-    }
-
-    .message {
-      margin: 5px 0;
-      padding: 8px;
-      border-radius: 8px;
-      max-width: 70%;
-    }
-
-    .message.user {
-      background-color: #007bff;
-      color: #fff;
-      align-self: flex-end;
-    }
-
-    .message.bot {
-      background-color: #e9ecef;
-      color: #333;
-      align-self: flex-start;
     }
 
     .chat-input-container {
@@ -93,7 +96,13 @@
   </style>
 </head>
 <body>
-  <div class="chat-container">
+  <!-- Chat Launcher -->
+  <div class="launcher" onclick="toggleChat()">
+    <img src="https://cdn-icons-png.flaticon.com/512/134/134914.png" alt="Chat Icon" />
+  </div>
+
+  <!-- Chat Container -->
+  <div class="chat-container" id="chat-container">
     <div class="chat-header">Salon Chat Assistant</div>
     <div class="chat-display" id="chat-display"></div>
     <div class="chat-input-container">
@@ -116,8 +125,15 @@
   </div>
 
   <script>
+    const chatContainer = document.getElementById("chat-container");
     const chatDisplay = document.getElementById("chat-display");
     const chatInput = document.getElementById("chat-input");
+
+    // Toggle chat visibility
+    function toggleChat() {
+      chatContainer.style.display =
+        chatContainer.style.display === "flex" ? "none" : "flex";
+    }
 
     // Function to display a message in the chat
     function addMessage(content, sender) {
