@@ -87,8 +87,8 @@
     }
 
     .icon-button img {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
     }
   </style>
 </head>
@@ -104,10 +104,13 @@
         placeholder="Type your message..."
       />
       <button class="icon-button" onclick="sendMessage('text')">
-        <img src="keyboard-icon.png" alt="Keyboard Icon" />
+        <img src="https://raw.githubusercontent.com/Brilliant2meNu/services-app/refs/heads/main/public/keyboard-icon_v1.png" alt="Keyboard Icon" />
       </button>
       <button class="icon-button" onclick="sendMessage('voice')">
-        <img src="mic-icon.png" alt="Microphone Icon" />
+        <img src="https://raw.githubusercontent.com/Brilliant2meNu/services-app/refs/heads/main/public/microphone-icon_v1.png" alt="Microphone Icon" />
+      </button>
+      <button class="icon-button" onclick="sendMessage('text')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Paper_Airplane.svg/2048px-Paper_Airplane.svg.png" alt="Send Icon" />
       </button>
     </div>
   </div>
@@ -127,10 +130,11 @@
 
     // Function to handle sending messages
     async function sendMessage(type) {
-      const message = type === "text" ? chatInput.value.trim() : "Voice message (placeholder)";
-      if (!message) return;
+      const message = chatInput.value.trim();
+      if (!message && type === "text") return;
 
-      addMessage(message, "user");
+      const placeholder = type === "voice" ? "Voice message (placeholder)" : message;
+      addMessage(placeholder, "user");
       chatInput.value = "";
 
       // Mock response from bot (replace this with your API call)
