@@ -3,177 +3,299 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Client Management</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.min.js"></script>
+  <title>Salon Skin Assistant</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f8f9fa; text-align: center; }
-    .container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 5px; }
-    table { width: 100%; margin: 20px 0; border-collapse: collapse; }
-    th, td { padding: 10px; border: 1px solid #ccc; }
-    th { background: #007bff; color: white; }
-    .buttons { margin: 10px 0; }
-    button { margin: 5px; padding: 10px; border-radius: 5px; cursor: pointer; }
-    .delete { background: #ff4d4d; color: white; }
-    .save { background: #007bff; color: white; }
-    .add { background: #28a745; color: white; }
-    .cancel { background: #6c757d; color: white; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      text-align: left;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    .chatbot {
+      margin-bottom: 20px;
+    }
+
+    .chatbot h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .chatbot textarea {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 10px;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      resize: none;
+    }
+
+    .chatbot button {
+      padding: 10px 15px;
+      margin: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .chatbot .login-btn {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    .chatbot .login-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .chatbot .other-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .chatbot .other-btn:hover {
+      background-color: #565e64;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+      background-color: white;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      border-bottom: 2px solid #007BFF;
+      color: #007BFF;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Client Management</h1>
-    <input type="text" id="search-input" placeholder="Search clients..." oninput="filterClients()">
-    <table>
-      <thead>
-        <tr>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-        </tr>
-      </thead>
-      <tbody id="client-table">
-        <tr><td colspan="4">Loading...</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Client Details</h2>
-    <div>
-      <input type="text" id="first-name" placeholder="First Name">
-      <input type="text" id="last-name" placeholder="Last Name">
-      <input type="email" id="email" placeholder="Email">
-      <input type="text" id="phone" placeholder="Phone Number">
-      <input type="password" id="password" placeholder="Password">
-    </div>
-    <div class="buttons">
-      <button class="delete" onclick="deleteClient()">Delete User</button>
-      <button class="cancel" onclick="clearFields()">Cancel</button>
-      <button class="save" onclick="saveClient()">Save</button>
-      <button class="add" onclick="addClient()">Add User</button>
+    <!-- Chatbot -->
+    <div class="chatbot">
+      <h2>Chatbot</h2>
+      <textarea readonly>Assistant: Hello! Welcome to our salon assistant. I'm here to help you with your beauty needs.</textarea>
+      <div>
+        <button class="login-btn" id="openRegisterButton">Log In / Register</button>
+        <button class="other-btn" onclick="window.open('https://book.squareup.com/appointments/n6earhm0fgnmcq/location/LCD7YSX6BMFG1/services?buttonTextColor=ffffff&category_id=MJNRZ4AEDUMOPJ7YUJ2FZIRT&color=000000&locale=en&referrer=so')">Book Now</button>
+        <button class="other-btn" onclick="window.open('https://www.beautybyjingmeiko.com/contact')">Contact</button>
+        <button class="other-btn" onclick="window.open('https://github.com/Brilliant2meNu/services-app/blob/main/public/FAQ.html')">FAQ</button>
+      </div>
     </div>
   </div>
 
-  <script>
-    let supabase;
-    let clients = [];
-    let selectedClientId = null;
+  <!-- Modal -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content">
+      <div class="tabs">
+        <button class="tab-button active" data-tab="login">Log In</button>
+        <button class="tab-button" data-tab="register">Register</button>
+      </div>
 
-    // Initialize Supabase client
-    document.addEventListener("DOMContentLoaded", () => {
-      supabase = window.supabase.createClient(
-        "https://ovmdpupofhhudxhitoov.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM"
-      );
-      loadClients();
+      <!-- Login Tab -->
+      <div class="tab-content active" id="login">
+        <h2>Log In</h2>
+        <div class="form-group">
+          <label for="login_phone_number">Phone Number:</label>
+          <input type="text" id="login_phone_number" placeholder="Enter phone number">
+        </div>
+        <div class="form-group">
+          <label for="login_password">Password:</label>
+          <input type="password" id="login_password" placeholder="Enter password">
+        </div>
+        <button id="loginButton">Log In</button>
+        <div class="error" id="loginError"></div>
+      </div>
+
+      <!-- Register Tab -->
+      <div class="tab-content" id="register">
+        <h2>Register</h2>
+        <div class="form-group">
+          <label for="phone_number">Phone Number:</label>
+          <input type="text" id="phone_number" placeholder="Enter phone number">
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" placeholder="Enter password">
+        </div>
+        <button id="submitButton">Register</button>
+        <div class="error" id="errorMessage"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://ovmdpupofhhudxhitoov.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWRwdXBvZmhodWR4aGl0b292Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMjQ1MjUsImV4cCI6MjA1MzYwMDUyNX0.r2SgtfiL8c4rTGcXOBPhU9csCztLLjP8ibEXat46gaM';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const modal = document.getElementById('registerModal');
+    const openModalButton = document.getElementById('openRegisterButton');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    openModalButton.addEventListener('click', () => {
+      modal.style.display = 'block';
     });
 
-    async function loadClients() {
-      const table = document.getElementById("client-table");
-      try {
-        const { data, error } = await supabase.from("users").select("*");
-        if (error) throw error;
-        clients = data || [];
-        renderClients(clients);
-      } catch (error) {
-        console.error("Error loading clients:", error);
-        table.innerHTML = "<tr><td colspan='4'>Error loading clients.</td></tr>";
+    window.onclick = (event) => {
+      if (event.target === modal) modal.style.display = 'none';
+    };
+
+    tabButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        tabButtons.forEach((btn) => btn.classList.remove('active'));
+        tabContents.forEach((content) => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(button.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Login Function
+    document.getElementById('loginButton').addEventListener('click', async () => {
+      const phoneNumber = document.getElementById('login_phone_number').value.trim();
+      const password = document.getElementById('login_password').value.trim();
+      const loginError = document.getElementById('loginError');
+
+      if (!phoneNumber || !password) {
+        loginError.textContent = 'Please fill in both fields.';
+        return;
       }
-    }
 
-    function renderClients(data) {
-      const table = document.getElementById("client-table");
-      table.innerHTML = data.length
-        ? data.map(client => `
-          <tr onclick="selectClient('${client.id}', '${client.first_name}', '${client.last_name}', '${client.email}', '${client.phone_number}', '${client.password}')">
-            <td>${client.first_name || ""}</td>
-            <td>${client.last_name || ""}</td>
-            <td>${client.email || ""}</td>
-            <td>${client.phone_number || ""}</td>
-          </tr>
-        `).join("")
-        : "<tr><td colspan='4'>No clients found.</td></tr>";
-    }
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('phone_number', phoneNumber)
+        .eq('password', password);
 
-    function filterClients() {
-      const query = document.getElementById("search-input").value.toLowerCase();
-      const filtered = clients.filter(client =>
-        (client.first_name || "").toLowerCase().includes(query) ||
-        (client.last_name || "").toLowerCase().includes(query) ||
-        (client.email || "").toLowerCase().includes(query) ||
-        (client.phone_number || "").toLowerCase().includes(query)
-      );
-      renderClients(filtered);
-    }
-
-    function selectClient(id, firstName, lastName, email, phone, password) {
-      selectedClientId = id;
-      document.getElementById("first-name").value = firstName || "";
-      document.getElementById("last-name").value = lastName || "";
-      document.getElementById("email").value = email || "";
-      document.getElementById("phone").value = phone || "";
-      document.getElementById("password").value = password || "";
-    }
-
-    async function saveClient() {
-      if (!selectedClientId) return alert("No client selected!");
-      const updatedClient = {
-        first_name: document.getElementById("first-name").value.trim(),
-        last_name: document.getElementById("last-name").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        phone_number: document.getElementById("phone").value.trim(),
-        password: document.getElementById("password").value.trim()
-      };
-      try {
-        const { error } = await supabase.from("users").update(updatedClient).eq("id", selectedClientId);
-        if (error) throw error;
-        alert("Client updated successfully!");
-        loadClients();
-        clearFields();
-      } catch (error) {
-        console.error("Error saving client:", error);
+      if (error || data.length === 0) {
+        loginError.textContent = 'Invalid phone number or password.';
+      } else {
+        loginError.textContent = '';
+        alert(`Welcome back, ${data[0].first_name}!`);
+        modal.style.display = 'none';
       }
-    }
+    });
 
-    async function addClient() {
-      const newClient = {
-        first_name: document.getElementById("first-name").value.trim(),
-        last_name: document.getElementById("last-name").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        phone_number: document.getElementById("phone").value.trim(),
-        password: document.getElementById("password").value.trim()
-      };
-      try {
-        const { error } = await supabase.from("users").insert(newClient);
-        if (error) throw error;
-        alert("New client added successfully!");
-        loadClients();
-        clearFields();
-      } catch (error) {
-        console.error("Error adding client:", error);
+    // Register Function
+    document.getElementById('submitButton').addEventListener('click', async () => {
+      const phoneNumber = document.getElementById('phone_number').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMessage = document.getElementById('errorMessage');
+
+      if (!phoneNumber || !password) {
+        errorMessage.textContent = 'Please fill in all fields.';
+        return;
       }
-    }
 
-    async function deleteClient() {
-      if (!selectedClientId) return alert("No client selected!");
-      try {
-        const { error } = await supabase.from("users").delete().eq("id", selectedClientId);
-        if (error) throw error;
-        alert("Client deleted successfully!");
-        loadClients();
-        clearFields();
-      } catch (error) {
-        console.error("Error deleting client:", error);
+      const { error } = await supabase.from('users').insert([{ phone_number: phoneNumber, password }]);
+
+      if (error) {
+        errorMessage.textContent = 'Error creating account.';
+      } else {
+        errorMessage.textContent = '';
+        alert('Account created successfully!');
+        modal.style.display = 'none';
       }
-    }
-
-    function clearFields() {
-      document.getElementById("first-name").value = "";
-      document.getElementById("last-name").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("phone").value = "";
-      document.getElementById("password").value = "";
-      selectedClientId = null;
-    }
+    });
   </script>
 </body>
 </html>
