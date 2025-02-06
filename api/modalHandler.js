@@ -1,4 +1,3 @@
-
 // modalHandler.js
 export function initModal(modalId, tabButtonsSelector, tabContentsSelector) {
   const modal = document.getElementById(modalId);
