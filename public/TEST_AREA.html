@@ -4,25 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Skin Analysis</title>
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-  <script type="module" src="../api/analyzeSkin.js"></script>
+  <!-- Load the local face-api.js library -->
+  <script defer src="/js/face-api.min.js"></script>
+  <!-- Load your analyzeSkin.js -->
+  <script type="module" src="/api/analyzeSkin.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; }
-    #video, canvas { display: block; margin: auto; }
-    #upload { margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #video, canvas {
+      display: block;
+      margin: auto;
+    }
+    #upload {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>AI Skin Analysis</h1>
+  <!-- Video stream (future use, optional) -->
   <video id="video" width="640" height="480" autoplay></video>
+  <!-- Canvas for displaying image -->
   <canvas id="canvas"></canvas>
+  <!-- Upload button for the image -->
   <input type="file" id="upload" accept="image/*">
+  <!-- Button to analyze the uploaded skin image -->
   <button id="analyzeButton">Analyze Skin</button>
   <p id="result"></p>
 
   <script type="module">
-    import { analyzeSkin } from "../api/analyzeSkin.js";
+    import { analyzeSkin } from "/api/analyzeSkin.js";
 
+    // Attach click event to the Analyze Skin button
     document.getElementById("analyzeButton").onclick = analyzeSkin;
   </script>
 </body>
