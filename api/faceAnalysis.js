@@ -1,5 +1,4 @@
-
-import * as faceapi from "face-api.js";
+import * as faceapi from "../js/face-api.min.js";
 
 export const runFaceAnalysis = async (canvas) => {
   // Load face-api.js models
