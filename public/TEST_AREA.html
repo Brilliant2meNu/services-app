@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Skin Analysis</title>
-  <script defer src="/js/face-api.min.js"></script>
+  <script defer src="/public/js/face-api.min.js"></script>
   <script type="module" src="/api/faceAnalysis.js"></script>
   <script type="module" src="/api/modalHandler.js"></script>
   <style>
@@ -31,7 +31,7 @@
   </div>
 
   <script type="module">
-    import { loadModels, analyzeSkin } from "/api/faceAnalysis.js";
+    import { loadModels, runFaceAnalysis } from "/api/faceAnalysis.js";
     import { initModal, openModal } from "/api/modalHandler.js";
 
     window.onload = async () => {
