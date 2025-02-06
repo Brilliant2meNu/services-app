@@ -8,7 +8,7 @@
   <script type="module" src="/api/analyzeSkin.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; }
-    #video, canvas { display: block; margin: auto; }
+    #canvas { display: block; margin: auto; }
     #upload { margin-top: 20px; }
   </style>
 </head>
@@ -24,7 +24,7 @@
 
     window.onload = async () => {
       await loadModels();
-      console.log("Models loaded on page load!");
+      console.log("Models loaded successfully!");
     };
 
     window.analyze = analyzeSkin;
