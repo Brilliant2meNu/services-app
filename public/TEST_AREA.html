@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Skin Analysis</title>
   <script defer src="/js/face-api.min.js"></script>
-  <script type="module" src="/api/analyzeSkin.js"></script>
+  <script type="module" src="/api/faceAnalysis.js"></script>
+  <script type="module" src="/api/modalHandler.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; }
     #canvas { display: block; margin: auto; }
     #upload { margin-top: 20px; }
+    #loading { display: none; }
+    .modal { display: none; }
+    .active { display: block; }
   </style>
 </head>
 <body>
@@ -18,16 +22,67 @@
   <input type="file" id="upload" accept="image/*">
   <button onclick="analyze()">Analyze Skin</button>
   <p id="result"></p>
+  <p id="loading">Loading models, please wait...</p>
+
+  <div id="modal" class="modal">
+    <div id="tab-content">
+      <!-- Tab contents here -->
+    </div>
+  </div>
 
   <script type="module">
-    import { loadModels, analyzeSkin } from "/api/analyzeSkin.js";
+    import { loadModels, analyzeSkin } from "/api/faceAnalysis.js";
+    import { initModal, openModal } from "/api/modalHandler.js";
 
     window.onload = async () => {
-      await loadModels();
-      console.log("Models loaded successfully!");
+      try {
+        document.getElementById('loading').style.display = 'block';
+        await loadModels();
+        console.log("Models loaded successfully!");
+      } catch (error) {
+        console.error("Error loading models:", error);
+        document.getElementById('result').innerText = 'Error loading models. Please try again.';
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+      initModal('modal', '.tab-button', '.tab-content');
     };
 
-    window.analyze = analyzeSkin;
+    window.analyze = async () => {
+      try {
+        document.getElementById('result').innerText = 'Analyzing...';
+
+        // Get the uploaded image element and canvas
+        const imageUpload = document.getElementById('upload').files[0];
+        const canvas = document.getElementById('canvas');
+
+        if (!imageUpload) {
+          console.error("No image uploaded.");
+          document.getElementById('result').innerText = 'Please upload an image.';
+          return;
+        }
+
+        // Load the image onto the canvas
+        const img = await faceapi.bufferToImage(imageUpload);
+        const displaySize = { width: img.width, height: img.height };
+        canvas.width = displaySize.width;
+        canvas.height = displaySize.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        // Perform face analysis
+        const results = await runFaceAnalysis(canvas);
+
+        // Display analysis results
+        document.getElementById('result').innerText = 'Skin analysis complete.';
+
+        // Example of opening the modal
+        openModal('modal');
+      } catch (error) {
+        console.error("Error analyzing skin:", error);
+        document.getElementById('result').innerText = 'Error analyzing skin. Please try again.';
+      }
+    };
   </script>
 </body>
 </html>
