@@ -1,25 +1,8 @@
+import * as faceapi from "https://cdn.jsdelivr.net/npm/face-api.js";
 
-import { processFile } from "./fileHandler.js";
-import { runFaceAnalysis } from "./faceAnalysis.js";
-import { saveToDatabase } from "./saveToDatabase.js";
-
-export const analyzeSkin = async () => {
-  const fileInput = document.querySelector("input[type='file']");
-  const file = fileInput.files[0];
-
-  try {
-    const canvas = await processFile(file); // Render image on canvas
-    const analysis = await runFaceAnalysis(canvas); // Analyze the image
-    console.log("Analysis Results:", analysis);
-
-    const result = await saveToDatabase(analysis); // Save to database
-    if (result) {
-      alert("Skin analysis completed and saved successfully!");
-    } else {
-      alert("Skin analysis completed but not saved.");
-    }
-  } catch (error) {
-    console.error("Error during analysis:", error);
-    alert(`Error: ${error}`);
-  }
+export const loadModels = async () => {
+  const modelPath = "/models/"; // Path to your models folder
+  await faceapi.nets.ssdMobilenetv1.loadFromUri(modelPath);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(modelPath);
+  await faceapi.nets.faceExpressionNet.loadFromUri(modelPath);
 };
