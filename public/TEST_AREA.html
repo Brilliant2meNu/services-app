@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Skin Analysis</title>
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-  <script defer src="face-analysis.js"></script>
+  <script type="module" src="../api/analyzeSkin.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; }
     #video, canvas { display: block; margin: auto; }
@@ -17,7 +17,13 @@
   <video id="video" width="640" height="480" autoplay></video>
   <canvas id="canvas"></canvas>
   <input type="file" id="upload" accept="image/*">
-  <button onclick="analyzeSkin()">Analyze Skin</button>
+  <button id="analyzeButton">Analyze Skin</button>
   <p id="result"></p>
+
+  <script type="module">
+    import { analyzeSkin } from "../api/analyzeSkin.js";
+
+    document.getElementById("analyzeButton").onclick = analyzeSkin;
+  </script>
 </body>
 </html>
