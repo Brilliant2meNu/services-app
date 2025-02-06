@@ -1,4 +1,4 @@
-import * as faceapi from "https://cdn.jsdelivr.net/npm/face-api.js";
+import * as faceapi from "../js/face-api.min.js";
 
 export const loadModels = async () => {
   const modelPath = "/models/"; // Path to your models folder
